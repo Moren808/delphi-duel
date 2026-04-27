@@ -1,0 +1,22 @@
+{
+  "name": "@delphi-duel/bear",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "tsx watch index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@delphi-duel/agents-shared": "workspace:*",
+    "@delphi-duel/shared-types": "workspace:*",
+    "@anthropic-ai/sdk": "^0.30.0",
+    "dotenv": "^16.0.0",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
+  }
+}

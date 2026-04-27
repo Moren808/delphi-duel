@@ -1,0 +1,7 @@
+{
+  "PrivateKeyPath": "keys/bear.pem",
+  "Listen": [],
+  "Peers": ["tls://127.0.0.1:9001"],
+  "api_port": 9012,
+  "a2a_addr": "http://127.0.0.1:8002"
+}

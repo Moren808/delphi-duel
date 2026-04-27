@@ -1,0 +1,7 @@
+{
+  "PrivateKeyPath": "keys/bull.pem",
+  "Listen": ["tls://0.0.0.0:9001"],
+  "Peers": [],
+  "api_port": 9002,
+  "a2a_addr": "http://127.0.0.1:8001"
+}

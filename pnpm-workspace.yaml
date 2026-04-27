@@ -1,0 +1,7 @@
+packages:
+  - "agents/bull"
+  - "agents/bear"
+  - "agents/shared"
+  - "web"
+  - "shared/sdk"
+  - "shared/types"

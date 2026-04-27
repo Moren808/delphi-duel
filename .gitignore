@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+
+# Environment secrets
+.env
+.env.local
+.env.*.local
+
+# AXL identity keys (never commit)
+axl/keys/
+*.pem
+
+# AXL cloned repo and built binary
+axl/axl-repo/
+
+# SQLite databases
+*.db
+*.db-shm
+*.db-wal
+
+# Build output
+dist/
+.next/
+out/
+
+# Logs
+*.log
+/tmp/axl-*.log
+/tmp/axl-*.pid
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Misc
+KILL

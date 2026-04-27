@@ -1,0 +1,27 @@
+{
+  "name": "delphi-duel",
+  "version": "0.0.1",
+  "private": true,
+  "packageManager": "pnpm@9.0.0",
+  "scripts": {
+    "axl:build": "bash axl/scripts/build.sh",
+    "axl:keys": "bash axl/scripts/generate-keys.sh",
+    "axl:start": "bash axl/scripts/start-mesh.sh",
+    "axl:keys-show": "curl -s http://127.0.0.1:9002/topology | jq .our_public_key && curl -s http://127.0.0.1:9012/topology | jq .our_public_key",
+    "dev:bull": "pnpm --filter @delphi-duel/bull dev",
+    "dev:bear": "pnpm --filter @delphi-duel/bear dev",
+    "dev:web": "pnpm --filter @delphi-duel/web dev",
+    "test:mesh": "tsx scripts/test-mesh.ts",
+    "run-duel": "tsx scripts/run-duel.ts",
+    "install:all": "pnpm install"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "dotenv": "^16.0.0",
+    "zod": "^3.22.0"
+  }
+}
