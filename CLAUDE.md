@@ -192,7 +192,7 @@ BUILD_GUIDE.md
 
 ## Phase status (update as you ship)
 
-- [ ] Phase 1 — Scaffold + dependencies
+- [x] Phase 1 — Scaffold + dependencies
 - [ ] Phase 2 — Clone AXL, build binary, generate two ed25519 keys, write two configs
 - [ ] Phase 3 — Two nodes peer locally (test-mesh ping passes via /send + /recv)
 - [ ] Phase 4 — Delphi market fetcher (read-only)
