@@ -199,7 +199,7 @@ BUILD_GUIDE.md
 - [x] Phase 5 — Bull and Bear agent processes with system prompts
 - [x] Phase 6 — AXL client wrapper + protocol schemas + raw send/recv debate loop
 - [x] Phase 7 — Full duel loop runs end-to-end via CLI
-- [ ] Phase 8 — Web UI with live transcript and probability bars
+- [x] Phase 8 — Web UI with live transcript and probability bars
 - [ ] Phase 9 — (Stretch) Upgrade debate turns to use /a2a/ instead of /send
 - [ ] Phase 10 — Polish, README with gif, demo rehearsal
 
