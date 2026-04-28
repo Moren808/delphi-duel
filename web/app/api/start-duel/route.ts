@@ -24,15 +24,29 @@ interface ActiveDuel {
   started_at: string;
 }
 
-// Module-scoped state. Per-process; resets on Next.js hot reload — fine
-// for hackathon/dev use.
-let active: ActiveDuel | null = null;
+// Module state must live on globalThis or Next.js dev re-evaluates the
+// module per-request and the singleton resets. Survives across GET/POST
+// in the same dev session; resets on full server restart.
+const STATE_KEY = "__delphi_duel_active";
+type StateHolder = { current: ActiveDuel | null };
+function holder(): StateHolder {
+  const g = globalThis as unknown as Record<string, StateHolder>;
+  if (!g[STATE_KEY]) g[STATE_KEY] = { current: null };
+  return g[STATE_KEY];
+}
+function getActive(): ActiveDuel | null {
+  return holder().current;
+}
+function setActive(v: ActiveDuel | null): void {
+  holder().current = v;
+}
 
 function repoRoot(): string {
   return resolve(process.cwd(), "..");
 }
 
 export async function GET(): Promise<Response> {
+  const active = getActive();
   return Response.json({
     active: active
       ? {
@@ -46,11 +60,12 @@ export async function GET(): Promise<Response> {
 }
 
 export async function POST(req: Request): Promise<Response> {
-  if (active && active.child.exitCode == null) {
+  const existing = getActive();
+  if (existing && existing.child.exitCode == null) {
     return Response.json(
       {
         error: "duel already running",
-        active: { duel_id: active.duel_id, market_id: active.market_id },
+        active: { duel_id: existing.duel_id, market_id: existing.market_id },
       },
       { status: 409 },
     );
@@ -85,23 +100,25 @@ export async function POST(req: Request): Promise<Response> {
   });
   child.stdout?.resume();
 
-  active = {
+  const startedAt = new Date().toISOString();
+  setActive({
     duel_id: duelId,
     market_id: marketId,
     child,
-    started_at: new Date().toISOString(),
-  };
+    started_at: startedAt,
+  });
 
   child.on("exit", (code) => {
     process.stderr.write(
       `[duel ${duelId.slice(0, 8)}] orchestrator exited with code ${code}\n`,
     );
-    if (active?.duel_id === duelId) active = null;
+    const cur = getActive();
+    if (cur?.duel_id === duelId) setActive(null);
   });
 
   return Response.json({
     duel_id: duelId,
     market_id: marketId,
-    started_at: active.started_at,
+    started_at: startedAt,
   });
 }
