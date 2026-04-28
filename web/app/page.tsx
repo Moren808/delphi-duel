@@ -130,16 +130,16 @@ export default function Home() {
         />
 
         {error && (
-          <div className="rounded-lg border border-rose-500/40 bg-rose-500/10 px-4 py-3 font-mono text-xs text-rose-300">
+          <div className="rounded-lg border-2 border-black bg-white px-4 py-3 font-mono text-xs text-black">
             {error}
           </div>
         )}
 
         {marketId && (
           <>
-            <div className="flex items-center justify-between rounded-lg border border-slate-800 bg-slate-900/40 px-4 py-3">
-              <p className="text-sm text-slate-300">{marketQuestion}</p>
-              <p className="font-mono text-[10px] text-slate-600">
+            <div className="flex items-center justify-between rounded-lg border border-black bg-white px-4 py-3">
+              <p className="text-sm text-black">{marketQuestion}</p>
+              <p className="font-mono text-[10px] text-gray-500">
                 {marketId.slice(0, 12)}…
               </p>
             </div>
@@ -161,12 +161,12 @@ export default function Home() {
         )}
 
         {!marketId && (
-          <div className="rounded-xl border border-dashed border-slate-800 bg-slate-900/30 px-6 py-12 text-center">
-            <p className="font-mono text-xs uppercase tracking-wider text-slate-500">
+          <div className="rounded-xl border border-dashed border-black bg-white px-6 py-12 text-center">
+            <p className="font-mono text-xs uppercase tracking-wider text-gray-600">
               ready
             </p>
-            <p className="mt-2 text-sm text-slate-400">
-              pick a market above and press <span className="text-emerald-400">start duel</span> to begin
+            <p className="mt-2 text-sm text-gray-700">
+              pick a market above and press <span className="font-semibold text-black">start duel</span> to begin
             </p>
           </div>
         )}

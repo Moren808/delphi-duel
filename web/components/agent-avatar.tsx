@@ -10,19 +10,18 @@ interface Props {
 }
 
 /**
- * Circular avatar — green up-arrow for bull, red down-arrow for bear.
- * Trading-terminal vibe; not literal animal mascots.
+ * Circular avatar — TrendingUp for bull, TrendingDown for bear. In the
+ * monochrome theme bull is filled black-on-white, bear is the inverse
+ * (white-on-black with a black border) — different shapes plus inverted
+ * fill so they read distinctly without relying on hue.
  */
 export function AgentAvatar({ role, thinking = false, size = "md" }: Props) {
   const isBull = role === "bull";
   const dim = size === "sm" ? "h-8 w-8" : "h-12 w-12";
   const Icon = isBull ? TrendingUp : TrendingDown;
   const colors = isBull
-    ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
-    : "border-rose-500/40 bg-rose-500/10 text-rose-400";
-  const ringColor = isBull
-    ? "ring-emerald-500/40"
-    : "ring-rose-500/40";
+    ? "border-black bg-white text-black"
+    : "border-black bg-black text-white";
 
   return (
     <span
@@ -30,7 +29,7 @@ export function AgentAvatar({ role, thinking = false, size = "md" }: Props) {
         "inline-flex shrink-0 items-center justify-center rounded-full border",
         dim,
         colors,
-        thinking && cn("ring-2", ringColor, "animate-pulse"),
+        thinking && "ring-2 ring-black animate-pulse",
       )}
     >
       <Icon className={size === "sm" ? "h-4 w-4" : "h-6 w-6"} strokeWidth={2.5} />

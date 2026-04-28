@@ -5,20 +5,9 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Trading-terminal palette: slate background, role-coded accents.
-        // Bull = green-500, Bear = red-500 (per spec).
-        bull: {
-          DEFAULT: "#22c55e",
-          fg: "#22c55e",
-          bg: "#052e16",
-          border: "#166534",
-        },
-        bear: {
-          DEFAULT: "#ef4444",
-          fg: "#ef4444",
-          bg: "#3b0a0a",
-          border: "#991b1b",
-        },
+        // Monochrome palette only — black/white with grayscale muted text.
+        // Bull and bear are differentiated by labels, icon shape, and
+        // card position, not by hue.
       },
       fontFamily: {
         sans: ["ui-sans-serif", "system-ui", "-apple-system", "Segoe UI", "Helvetica", "Arial", "sans-serif"],
@@ -35,8 +24,8 @@ const config: Config = {
       },
       keyframes: {
         "pulse-ring": {
-          "0%": { boxShadow: "0 0 0 0 rgba(34, 197, 94, 0.55)" },
-          "100%": { boxShadow: "0 0 0 12px rgba(34, 197, 94, 0)" },
+          "0%": { boxShadow: "0 0 0 0 rgba(0, 0, 0, 0.55)" },
+          "100%": { boxShadow: "0 0 0 12px rgba(0, 0, 0, 0)" },
         },
       },
       animation: {

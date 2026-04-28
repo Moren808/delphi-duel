@@ -31,11 +31,11 @@ export function TranscriptPane({ turns }: Props) {
 
   if (turns.length === 0) {
     return (
-      <section className="rounded-xl border border-slate-800 bg-slate-900/40 p-6 text-center">
-        <p className="font-mono text-xs uppercase tracking-wider text-slate-500">
+      <section className="rounded-xl border border-black bg-white p-6 text-center">
+        <p className="font-mono text-xs uppercase tracking-wider text-gray-600">
           transcript
         </p>
-        <p className="mt-3 font-mono text-sm text-slate-500">
+        <p className="mt-3 font-mono text-sm text-gray-500">
           waiting for the first turn…
         </p>
       </section>
@@ -43,12 +43,12 @@ export function TranscriptPane({ turns }: Props) {
   }
 
   return (
-    <section className="rounded-xl border border-slate-800 bg-slate-900/40">
-      <div className="flex items-center justify-between border-b border-slate-800 px-5 py-3">
-        <p className="font-mono text-xs uppercase tracking-wider text-slate-500">
+    <section className="rounded-xl border border-black bg-white">
+      <div className="flex items-center justify-between border-b border-black px-5 py-3">
+        <p className="font-mono text-xs uppercase tracking-wider text-gray-600">
           transcript
         </p>
-        <p className="font-mono text-[10px] text-slate-600">
+        <p className="font-mono text-[10px] text-gray-500">
           {turns.length} turn{turns.length === 1 ? "" : "s"}
         </p>
       </div>
@@ -69,10 +69,6 @@ export function TranscriptPane({ turns }: Props) {
 }
 
 function TurnRow({ turn, isLatest }: { turn: TurnRecord; isLatest: boolean }) {
-  const isBull = turn.role === "bull";
-  const accent = isBull ? "border-emerald-500/30" : "border-rose-500/30";
-  const numColor = isBull ? "text-emerald-300" : "text-rose-300";
-
   return (
     <motion.li
       layout
@@ -80,33 +76,31 @@ function TurnRow({ turn, isLatest }: { turn: TurnRecord; isLatest: boolean }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
       className={cn(
-        "flex items-start gap-3 rounded-lg border bg-slate-950/70 p-4",
-        accent,
-        isLatest &&
-          (isBull
-            ? "ring-1 ring-emerald-500/50"
-            : "ring-1 ring-rose-500/50"),
+        "flex items-start gap-3 rounded-lg border border-black bg-white p-4",
+        // Latest turn gets a slightly thicker double-stroke effect via a
+        // 2px-equivalent ring rather than a colored ring.
+        isLatest && "ring-2 ring-black ring-offset-2 ring-offset-white",
       )}
     >
       <AgentAvatar role={turn.role} size="sm" />
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
         <div className="flex items-center gap-3">
-          <span className={cn("font-mono text-xs font-semibold uppercase", numColor)}>
+          <span className="font-mono text-xs font-semibold uppercase text-black">
             {turn.role}
           </span>
-          <span className="font-mono text-[10px] uppercase tracking-wider text-slate-500">
+          <span className="font-mono text-[10px] uppercase tracking-wider text-gray-600">
             round {turn.round}
           </span>
-          <span className="ml-auto font-mono text-xs tabular-nums text-slate-300">
-            P(YES) <span className={numColor}>{turn.probability.toFixed(3)}</span>
+          <span className="ml-auto font-mono text-xs tabular-nums text-gray-700">
+            P(YES) <span className="font-semibold text-black">{turn.probability.toFixed(3)}</span>
           </span>
           {turn.is_final && (
-            <span className="font-mono text-[10px] uppercase tracking-wider text-amber-400">
+            <span className="rounded border border-black px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider text-black">
               final
             </span>
           )}
         </div>
-        <p className="text-sm leading-relaxed text-slate-200">
+        <p className="text-sm leading-relaxed text-black">
           {turn.message_to_peer}
         </p>
       </div>

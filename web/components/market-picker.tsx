@@ -37,12 +37,12 @@ export function MarketPicker({
   };
 
   return (
-    <section className="rounded-xl border border-slate-800 bg-slate-900/40 p-5">
+    <section className="rounded-xl border border-black bg-white p-5">
       <div className="mb-3 flex items-center justify-between">
-        <h2 className="font-mono text-xs uppercase tracking-wider text-slate-500">
+        <h2 className="font-mono text-xs uppercase tracking-wider text-gray-600">
           market
         </h2>
-        <span className="font-mono text-[10px] text-slate-600">
+        <span className="font-mono text-[10px] text-gray-500">
           delphi mainnet
         </span>
       </div>
@@ -54,9 +54,9 @@ export function MarketPicker({
             onChange={(e) => setSelected(e.target.value)}
             disabled={disabled || starting}
             className={cn(
-              "w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2",
-              "font-mono text-sm text-slate-200",
-              "focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500",
+              "w-full rounded-md border border-black bg-white px-3 py-2",
+              "font-mono text-sm text-black",
+              "focus:outline-none focus:ring-2 focus:ring-black",
               "disabled:cursor-not-allowed disabled:opacity-50",
             )}
           >
@@ -77,15 +77,15 @@ export function MarketPicker({
               disabled={disabled || starting}
               spellCheck={false}
               className={cn(
-                "w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2",
-                "font-mono text-sm text-slate-200 placeholder:text-slate-600",
-                "focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500",
+                "w-full rounded-md border border-black bg-white px-3 py-2",
+                "font-mono text-sm text-black placeholder:text-gray-400",
+                "focus:outline-none focus:ring-2 focus:ring-black",
               )}
             />
           )}
 
           {!isCustom && (
-            <p className="font-mono text-[11px] text-slate-500">
+            <p className="font-mono text-[11px] text-gray-500">
               {DEMO_MARKETS.find((m) => m.id === selected)?.id ?? ""}
             </p>
           )}
@@ -97,10 +97,10 @@ export function MarketPicker({
           disabled={!canStart}
           className={cn(
             "inline-flex h-10 items-center justify-center gap-2 self-start rounded-md",
-            "border border-emerald-500/40 bg-emerald-500/10 px-5 font-mono text-sm font-medium",
-            "text-emerald-300 transition",
-            "hover:bg-emerald-500/20 hover:text-emerald-200",
-            "disabled:cursor-not-allowed disabled:border-slate-700 disabled:bg-slate-800/40 disabled:text-slate-500",
+            "border border-black bg-black px-5 font-mono text-sm font-medium",
+            "text-white transition",
+            "hover:bg-white hover:text-black",
+            "disabled:cursor-not-allowed disabled:border-gray-300 disabled:bg-gray-100 disabled:text-gray-400",
           )}
         >
           {starting ? (

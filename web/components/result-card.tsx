@@ -2,7 +2,6 @@
 
 import { motion } from "framer-motion";
 import { TrendingUp, TrendingDown } from "lucide-react";
-import { cn } from "@/lib/cn";
 import type { TurnRecord } from "@/lib/types";
 
 interface Props {
@@ -87,16 +86,16 @@ export function ResultCard({ turns, marketQuestion, marketId }: Props) {
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className="rounded-xl border border-amber-500/30 bg-gradient-to-br from-amber-500/5 to-slate-900/40 p-5"
+      className="rounded-xl border-2 border-black bg-white p-5"
     >
       <div className="mb-4 flex items-center justify-between">
-        <p className="font-mono text-xs uppercase tracking-wider text-amber-400">
+        <p className="font-mono text-xs font-semibold uppercase tracking-wider text-black">
           duel complete
         </p>
-        <p className="font-mono text-[10px] text-slate-500">{marketId.slice(0, 12)}…</p>
+        <p className="font-mono text-[10px] text-gray-500">{marketId.slice(0, 12)}…</p>
       </div>
 
-      <h3 className="mb-5 text-lg font-semibold text-slate-100">{marketQuestion}</h3>
+      <h3 className="mb-5 text-lg font-semibold text-black">{marketQuestion}</h3>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <RoleSummary
@@ -113,48 +112,39 @@ export function ResultCard({ turns, marketQuestion, marketId }: Props) {
         />
       </div>
 
-      <div className="mt-5 grid grid-cols-1 gap-3 border-t border-slate-800 pt-4 md:grid-cols-3">
+      <div className="mt-5 grid grid-cols-1 gap-3 border-t border-black pt-4 md:grid-cols-3">
         <div>
-          <p className="font-mono text-[10px] uppercase tracking-wider text-slate-500">
+          <p className="font-mono text-[10px] uppercase tracking-wider text-gray-600">
             who moved more
           </p>
-          <p className="mt-1 font-mono text-sm text-slate-200">
-            {biggerMover == null ? (
-              <span className="text-slate-400">tied</span>
-            ) : biggerMover === "bull" ? (
-              <span className="text-emerald-300">bull (+{Math.abs(bullMove).toFixed(3)})</span>
-            ) : (
-              <span className="text-rose-300">bear ({moveLabel(bearOpen, bearFinal)})</span>
-            )}
+          <p className="mt-1 font-mono text-sm text-black">
+            {biggerMover == null
+              ? "tied"
+              : biggerMover === "bull"
+                ? `bull (+${Math.abs(bullMove).toFixed(3)})`
+                : `bear (${moveLabel(bearOpen, bearFinal)})`}
           </p>
         </div>
         <div>
-          <p className="font-mono text-[10px] uppercase tracking-wider text-slate-500">
+          <p className="font-mono text-[10px] uppercase tracking-wider text-gray-600">
             final gap
           </p>
-          <p className="mt-1 font-mono text-sm tabular-nums text-slate-200">
+          <p className="mt-1 font-mono text-sm tabular-nums text-black">
             {gap.toFixed(3)}{" "}
-            <span className="text-slate-500">(bull − bear)</span>
+            <span className="text-gray-500">(bull − bear)</span>
           </p>
         </div>
         <div>
-          <p className="font-mono text-[10px] uppercase tracking-wider text-slate-500">
+          <p className="font-mono text-[10px] uppercase tracking-wider text-gray-600">
             rounds
           </p>
-          <p className="mt-1 font-mono text-sm text-slate-200">
+          <p className="mt-1 font-mono text-sm text-black">
             {turns.length} ({bullTurns.length} bull, {bearTurns.length} bear)
           </p>
         </div>
       </div>
 
-      <div
-        className={cn(
-          "mt-4 rounded-lg border px-4 py-3 text-sm",
-          verdict.tone === "agree"
-            ? "border-emerald-500/30 bg-emerald-500/5 text-emerald-200"
-            : "border-amber-500/30 bg-amber-500/5 text-amber-200",
-        )}
-      >
+      <div className="mt-4 rounded-lg border border-black bg-white px-4 py-3 text-sm text-black">
         <p className="font-medium">{verdict.text}</p>
       </div>
     </motion.section>
@@ -169,31 +159,28 @@ interface RoleSummaryProps {
 }
 
 function RoleSummary({ role, open, final, moveLabel }: RoleSummaryProps) {
-  const isBull = role === "bull";
-  const Icon = isBull ? TrendingUp : TrendingDown;
-  const accent = isBull ? "text-emerald-300" : "text-rose-300";
-  const border = isBull ? "border-emerald-500/30" : "border-rose-500/30";
+  const Icon = role === "bull" ? TrendingUp : TrendingDown;
 
   return (
-    <div className={cn("rounded-lg border bg-slate-950/40 p-4", border)}>
+    <div className="rounded-lg border border-black bg-white p-4">
       <div className="mb-3 flex items-center gap-2">
-        <Icon className={cn("h-4 w-4", accent)} strokeWidth={2.5} />
-        <span className={cn("font-mono text-xs font-semibold uppercase", accent)}>
+        <Icon className="h-4 w-4 text-black" strokeWidth={2.5} />
+        <span className="font-mono text-xs font-semibold uppercase text-black">
           {role}
         </span>
       </div>
       <div className="grid grid-cols-3 gap-2 font-mono text-sm tabular-nums">
         <div>
-          <p className="text-[10px] uppercase tracking-wider text-slate-500">open</p>
-          <p className="text-slate-300">{open.toFixed(3)}</p>
+          <p className="text-[10px] uppercase tracking-wider text-gray-600">open</p>
+          <p className="text-black">{open.toFixed(3)}</p>
         </div>
         <div>
-          <p className="text-[10px] uppercase tracking-wider text-slate-500">final</p>
-          <p className={cn("font-semibold", accent)}>{final.toFixed(3)}</p>
+          <p className="text-[10px] uppercase tracking-wider text-gray-600">final</p>
+          <p className="font-semibold text-black">{final.toFixed(3)}</p>
         </div>
         <div>
-          <p className="text-[10px] uppercase tracking-wider text-slate-500">move</p>
-          <p className="text-slate-300">{moveLabel}</p>
+          <p className="text-[10px] uppercase tracking-wider text-gray-600">move</p>
+          <p className="text-black">{moveLabel}</p>
         </div>
       </div>
     </div>

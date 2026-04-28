@@ -4,7 +4,6 @@ import { Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AgentAvatar } from "./agent-avatar";
 import { ProbabilityBar } from "./probability-bar";
-import { cn } from "@/lib/cn";
 import type { AgentRole } from "@/lib/types";
 
 interface Props {
@@ -23,38 +22,26 @@ const COPY = {
 } as const;
 
 export function AgentCard({ role, probability, round, thinking }: Props) {
-  const isBull = role === "bull";
   const { name, verb } = COPY[role];
-  const accent = isBull ? "border-emerald-500/30" : "border-rose-500/30";
-  const numColor = isBull ? "text-emerald-300" : "text-rose-300";
-
   const probLabel = probability == null ? "—" : probability.toFixed(3);
 
   return (
-    <div
-      className={cn(
-        "flex flex-col gap-4 rounded-xl border bg-slate-900/40 p-5",
-        accent,
-        isBull ? "glow-bull" : "glow-bear",
-      )}
-    >
+    <div className="flex flex-col gap-4 rounded-xl border border-black bg-white p-5">
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
           <AgentAvatar role={role} thinking={thinking} />
           <div>
-            <p className={cn("font-mono text-sm font-semibold", numColor)}>
-              {name}
-            </p>
-            <p className="font-mono text-[10px] uppercase tracking-wider text-slate-500">
+            <p className="font-mono text-sm font-semibold text-black">{name}</p>
+            <p className="font-mono text-[10px] uppercase tracking-wider text-gray-600">
               {verb}
             </p>
           </div>
         </div>
         <div className="text-right">
-          <p className="font-mono text-[10px] uppercase tracking-wider text-slate-500">
+          <p className="font-mono text-[10px] uppercase tracking-wider text-gray-600">
             round
           </p>
-          <p className="font-mono text-sm text-slate-300">
+          <p className="font-mono text-sm text-black">
             {round == null ? "—" : `r${round}`}
           </p>
         </div>
@@ -68,27 +55,21 @@ export function AgentCard({ role, probability, round, thinking }: Props) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 4 }}
             transition={{ duration: 0.25 }}
-            className={cn(
-              "font-mono text-5xl font-semibold tabular-nums tracking-tight",
-              numColor,
-            )}
+            className="font-mono text-5xl font-semibold tabular-nums tracking-tight text-black"
           >
             {probLabel}
           </motion.span>
         </AnimatePresence>
-        <span className="font-mono text-[10px] uppercase tracking-wider text-slate-500">
+        <span className="font-mono text-[10px] uppercase tracking-wider text-gray-600">
           P(YES)
         </span>
       </div>
 
-      <ProbabilityBar
-        probability={probability ?? 0}
-        role={role}
-      />
+      <ProbabilityBar probability={probability ?? 0} />
 
       <div className="h-5">
         {thinking && (
-          <span className="inline-flex items-center gap-2 font-mono text-xs text-slate-400">
+          <span className="inline-flex items-center gap-2 font-mono text-xs text-gray-700">
             <Loader2 className="h-3 w-3 animate-spin" />
             thinking…
           </span>
