@@ -7,14 +7,13 @@ export function Header() {
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-6 py-5">
         <div className="flex items-center gap-4">
           <Image
-            src="/logo.png"
+            src="/logo.jpg"
             alt="Delphi Duel"
-            width={160}
+            width={40}
             height={40}
             priority
-            // The image is the wordmark; height is the size that matters.
-            // width is a starting hint; the actual rendered width is whatever
-            // the image's intrinsic aspect ratio dictates at h-10 (40px).
+            // Logo is square (icon + wordmark stacked). Tailwind h-10 = 40px,
+            // matching the spec; w-auto preserves the square aspect ratio.
             className="h-10 w-auto"
           />
           <p className="hidden text-xs text-gray-600 sm:block">
