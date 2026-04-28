@@ -1,4 +1,4 @@
-# CLAUDE.md
+# AGENTS.md
 
 Project memory for **Delphi Duel**. Read at the start of every session.
 
@@ -168,7 +168,7 @@ No cloud. No Twitter. No Telegram. No wallets. No trading. Just the laptop.
   /test-mesh.ts              ping test: bull /send → bear /recv
   /run-duel.ts               CLI orchestrator for testing without UI
 
-CLAUDE.md
+AGENTS.md
 README.md
 PHASE_0_CHECKLIST.md
 BUILD_GUIDE.md
@@ -183,7 +183,7 @@ BUILD_GUIDE.md
 5. **Non-fatal AXL.** If a peer is unreachable, log warning, retry with backoff
 6. **No secrets in git.** `.env.local` per agent. `.pem` files in `/axl/keys/` (gitignored)
 
-## Files Claude must read before changing
+## Files to read before changing anything
 
 - `/agents/shared/protocol.ts` — A2A/send message contract
 - `/agents/shared/axl-client.ts` — the HTTP wrapper. All AXL calls go through this

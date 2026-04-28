@@ -16,7 +16,7 @@ export interface RecvResult {
   body: string;
   /**
    * AXL-derived peer ID of the sender. NOT equal to the sender's full
-   * ed25519 pubkey — see CLAUDE.md "Things that have burned us." Compare
+   * ed25519 pubkey — see AGENTS.md "Things that have burned us." Compare
    * against the peer's recorded `axl_peer_id` from public-keys.json.
    */
   fromPeerId: string;

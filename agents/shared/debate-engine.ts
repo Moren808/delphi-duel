@@ -19,7 +19,7 @@ import {
   peerRole,
 } from "./protocol.js";
 
-// CLAUDE.md spec: Anthropic API, model claude-sonnet-4-20250514. Strict JSON outputs.
+// AGENTS.md spec: Anthropic API, model claude-sonnet-4-20250514. Strict JSON outputs.
 const MODEL = process.env.DELPHI_DUEL_MODEL ?? "claude-sonnet-4-20250514";
 const MAX_TOKENS = 1024;
 const TEMPERATURE = 0.6;

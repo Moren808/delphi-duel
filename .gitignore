@@ -24,6 +24,7 @@ axl/axl-repo/
 dist/
 .next/
 out/
+web/next-env.d.ts
 
 # Logs
 *.log

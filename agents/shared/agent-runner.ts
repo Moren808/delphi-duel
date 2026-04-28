@@ -36,7 +36,7 @@ interface PeerKeysFile {
   bear: { pubkey: string; axl_peer_id: string };
 }
 
-/** Default port map per CLAUDE.md. */
+/** Default port map per AGENTS.md. */
 const API_PORTS: Record<AgentRole, number> = { bull: 9002, bear: 9012 };
 
 function loadPeerKeys(): PeerKeysFile {
