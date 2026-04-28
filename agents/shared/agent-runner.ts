@@ -136,7 +136,10 @@ export async function runAgent(opts: RunAgentOptions): Promise<void> {
 
   // --- bull opens at round 0 ---
   if (role === "bull") {
-    duelId = randomUUID();
+    // The orchestrator (or web API) can pre-mint a UUID so it knows
+    // the duel_id before bull starts. Falling back to randomUUID() keeps
+    // the CLI flow (pnpm dev:bull) working with no env.
+    duelId = process.env.DELPHI_DUEL_ID || randomUUID();
     const isFinal = myMaxTurns === 1;
     console.error(`[${role}] opening duel ${duelId} (round 0)`);
     const turn0 = await runTurn({
