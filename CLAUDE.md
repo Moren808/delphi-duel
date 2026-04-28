@@ -193,10 +193,10 @@ BUILD_GUIDE.md
 ## Phase status (update as you ship)
 
 - [x] Phase 1 — Scaffold + dependencies
-- [ ] Phase 2 — Clone AXL, build binary, generate two ed25519 keys, write two configs
-- [ ] Phase 3 — Two nodes peer locally (test-mesh ping passes via /send + /recv)
-- [ ] Phase 4 — Delphi market fetcher (read-only)
-- [ ] Phase 5 — Bull and Bear agent processes with system prompts
+- [x] Phase 2 — Clone AXL, build binary, generate two ed25519 keys, write two configs
+- [x] Phase 3 — Two nodes peer locally (test-mesh ping passes via /send + /recv)
+- [x] Phase 4 — Delphi market fetcher (read-only)
+- [x] Phase 5 — Bull and Bear agent processes with system prompts
 - [ ] Phase 6 — AXL client wrapper + protocol schemas + raw send/recv debate loop
 - [ ] Phase 7 — Full duel loop runs end-to-end via CLI
 - [ ] Phase 8 — Web UI with live transcript and probability bars
@@ -210,11 +210,14 @@ pnpm install                       # install everything
 pnpm axl:build                     # clone AXL repo + make build
 pnpm axl:keys                      # openssl genpkey x2 → bull.pem, bear.pem
 pnpm axl:start                     # start both AXL nodes
+pnpm axl:stop                      # stop both AXL nodes
 pnpm axl:keys-show                 # curl /topology on both, print public keys
 pnpm dev:bull                      # run bull agent
 pnpm dev:bear                      # run bear agent
 pnpm dev:web                       # run dashboard
 pnpm test:mesh                     # ping test
+pnpm list-markets [status] [cat]   # list Delphi markets (default: open, all)
+pnpm fetch-market <id>             # fetch one market as canonical Market shape
 pnpm run-duel <market-id>          # CLI duel
 ```
 
@@ -251,7 +254,15 @@ If falling behind: skip Phase 9. Keep send/recv as the protocol. Skip probabilit
 
 ## Things that have burned us (update as we hit them)
 
-- (empty — fill in as bugs land)
+- **AXL binary is named `node`, not `axl`.** The Makefile does `go build -o node ./cmd/node`. Scripts must reference `axl/axl-repo/node`
+- **macOS LibreSSL has no ed25519.** `/usr/bin/openssl genpkey -algorithm ed25519` fails. Must use Homebrew OpenSSL 3 (`/opt/homebrew/opt/openssl@3/bin/openssl`). `generate-keys.sh` auto-detects
+- **`a2a_addr` is host-only, port is separate.** AXL builds `a2aUrl = fmt.Sprintf("%s:%d", A2AAddr, A2APort)`. Don't bake the port into `a2a_addr` or you get a malformed URL
+- **PrivateKeyPath is resolved relative to CWD, not to the config file.** Configs now use absolute paths to keys, so cd doesn't matter
+- **`tcp_port` and `a2a_port` are NOT host-bound.** They live inside the gVisor userspace stack riding on Yggdrasil IPv6, so two nodes on the same machine can both default to 7000 / 9004 with no conflict. Only `api_port` (HTTP bridge on 127.0.0.1) and the Yggdrasil `Listen` TCP port (9001 for bull) are host-bound
+- **`X-From-Peer-Id` on /recv is NOT the sender's ed25519 pubkey.** AXL derives it from the sender's Yggdrasil IPv6 via `peerIDFromAddr → yggAddr.GetKey()`. Yggdrasil IPv6 is a one-way lossy hash (128 bits of address vs 256-bit pubkey), so only ~28 hex chars of prefix match — the rest is padded with `b`/`f`. `axl/keys/public-keys.json` stores both `pubkey` (use as `X-Destination-Peer-Id` for /send) and `axl_peer_id` (compare against `X-From-Peer-Id` from /recv). Protocol-level sender identity for our debate must use `axl_peer_id`, not `pubkey`
+- **Subshell wrapping eats the right PID.** `(cd ... && exec node ...) &` makes `$!` the subshell, not node — `kill $!` leaves the real process running. start-mesh.sh now launches the binary directly with absolute config paths; stop-mesh.sh has a `pgrep -f axl-repo/node` fallback either way
+- **Delphi REST API requires `DELPHI_API_ACCESS_KEY`** (note the *_ACCESS_* infix — not `DELPHI_API_KEY`). Both mainnet (`api.delphi.fyi`) and testnet (`delphi-api.gensyn.ai`) return HTTP 401 `{"error":"missing X-API-Key header"}` without it, and the SDK throws client-side at `getApiKey()` before any network call. Generate at https://api-access.delphi.fyi (mainnet) — separate portal from the trading UI at app.delphi.fyi. Goldsky subgraph is unauthenticated but only has trade events (`gatewayBuys/Sells/Liquidations/Redemptions`), no market metadata
+- **Delphi SDK is ESM-only** (`exports` field has `import` / `types` conditions, no `require`). Root `package.json` must have `"type": "module"` and any script using `__dirname` needs the `import.meta.url` + `fileURLToPath` workaround
 
 ## Things to NOT do
 

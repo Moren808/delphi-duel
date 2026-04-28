@@ -4,7 +4,32 @@
       "Bash(pnpm install *)",
       "Bash(git init *)",
       "Bash(git add *)",
-      "Bash(git commit *)"
+      "Bash(git commit *)",
+      "Bash(go version *)",
+      "Bash(bash axl/scripts/build.sh)",
+      "Bash(axl/axl-repo/axl --help)",
+      "Bash(axl/axl-repo/axl -help)",
+      "Bash(axl/axl-repo/node --help)",
+      "Bash(axl/axl-repo/node -help)",
+      "Bash(curl -s http://127.0.0.1:9002/topology)",
+      "Bash(curl -s http://127.0.0.1:9012/topology)",
+      "Bash(bash axl/scripts/stop-mesh.sh)",
+      "Bash(chmod +x axl/scripts/build.sh axl/scripts/generate-keys.sh axl/scripts/start-mesh.sh axl/scripts/stop-mesh.sh)",
+      "Bash(ps -p 82744 82749 -o pid,stat,command)",
+      "Bash(pkill -f \"axl-repo/node\")",
+      "Bash(npx tsx *)",
+      "Bash(pnpm exec *)",
+      "Bash(pnpm axl:probe)",
+      "Bash(pnpm test:mesh)",
+      "WebFetch(domain:docs.gensyn.ai)",
+      "Bash(pnpm fetch-market *)",
+      "Bash(pnpm list-markets *)",
+      "Bash(curl -sS -o /tmp/d-health.json -w \"HTTP %{http_code}\\\\n\" https://api.delphi.fyi/health)",
+      "Read(//tmp/**)",
+      "Bash(curl -sS -o /tmp/d-markets.json -w \"HTTP %{http_code}\\\\n\" \"https://api.delphi.fyi/markets?status=open&limit=2\")",
+      "Bash(curl -sS -o /tmp/d-tmarkets.json -w \"HTTP %{http_code}\\\\n\" \"https://delphi-api.gensyn.ai/markets?status=open&limit=2\")",
+      "Bash(curl -sS -o /tmp/d-introspect.json -w \"HTTP %{http_code}\\\\n\" -X POST \"https://api.goldsky.com/api/public/project_cmnoqdag1obop01z3efnu8ssq/subgraphs/delphi-mainnet/1.0.0/gn\" -H \"Content-Type: application/json\" --data '{\"query\":\"{ __schema { queryType { fields { name } } } }\"}')",
+      "Bash(git check-ignore *)"
     ]
   }
 }

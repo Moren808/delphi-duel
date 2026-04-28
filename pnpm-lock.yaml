@@ -8,6 +8,12 @@ importers:
 
   .:
     dependencies:
+      '@delphi-duel/sdk':
+        specifier: workspace:*
+        version: link:shared/sdk
+      '@delphi-duel/shared-types':
+        specifier: workspace:*
+        version: link:shared/types
       dotenv:
         specifier: ^16.0.0
         version: 16.6.1
@@ -33,6 +39,9 @@ importers:
       '@delphi-duel/agents-shared':
         specifier: workspace:*
         version: link:../shared
+      '@delphi-duel/sdk':
+        specifier: workspace:*
+        version: link:../../shared/sdk
       '@delphi-duel/shared-types':
         specifier: workspace:*
         version: link:../../shared/types
@@ -61,6 +70,9 @@ importers:
       '@delphi-duel/agents-shared':
         specifier: workspace:*
         version: link:../shared
+      '@delphi-duel/sdk':
+        specifier: workspace:*
+        version: link:../../shared/sdk
       '@delphi-duel/shared-types':
         specifier: workspace:*
         version: link:../../shared/types
@@ -86,6 +98,9 @@ importers:
       '@anthropic-ai/sdk':
         specifier: ^0.30.0
         version: 0.30.1
+      '@delphi-duel/shared-types':
+        specifier: workspace:*
+        version: link:../../shared/types
       zod:
         specifier: ^3.22.0
         version: 3.25.76
@@ -99,9 +114,15 @@ importers:
 
   shared/sdk:
     dependencies:
+      '@delphi-duel/shared-types':
+        specifier: workspace:*
+        version: link:../types
       '@gensyn-ai/gensyn-delphi-sdk':
         specifier: latest
         version: 1.0.0(typescript@5.9.3)(zod@3.25.76)
+      dotenv:
+        specifier: ^16.0.0
+        version: 16.6.1
     devDependencies:
       '@types/node':
         specifier: ^20.0.0

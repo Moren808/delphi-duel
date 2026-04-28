@@ -2,15 +2,31 @@
   "name": "@delphi-duel/agents-shared",
   "version": "0.0.1",
   "private": true,
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "type": "module",
+  "main": "./index.ts",
+  "types": "./index.ts",
+  "exports": {
+    ".": {
+      "types": "./index.ts",
+      "default": "./index.ts"
+    },
+    "./protocol": {
+      "types": "./protocol.ts",
+      "default": "./protocol.ts"
+    },
+    "./debate-engine": {
+      "types": "./debate-engine.ts",
+      "default": "./debate-engine.ts"
+    }
+  },
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch"
   },
   "dependencies": {
-    "zod": "^3.22.0",
-    "@anthropic-ai/sdk": "^0.30.0"
+    "@delphi-duel/shared-types": "workspace:*",
+    "@anthropic-ai/sdk": "^0.30.0",
+    "zod": "^3.22.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

@@ -1,7 +1,7 @@
 {
-  "PrivateKeyPath": "keys/bear.pem",
+  "PrivateKeyPath": "/Users/MAC/Downloads/delphi/.claude/worktrees/busy-jang-402b89/axl/keys/bear.pem",
   "Listen": [],
   "Peers": ["tls://127.0.0.1:9001"],
   "api_port": 9012,
-  "a2a_addr": "http://127.0.0.1:8002"
+  "max_message_size": 16777216
 }

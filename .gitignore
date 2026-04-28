@@ -5,6 +5,8 @@ node_modules/
 .env
 .env.local
 .env.*.local
+.env.local.save
+.env.*.save
 
 # AXL identity keys (never commit)
 axl/keys/
@@ -25,8 +27,7 @@ out/
 
 # Logs
 *.log
-/tmp/axl-*.log
-/tmp/axl-*.pid
+axl/logs/
 
 # OS
 .DS_Store

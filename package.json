@@ -2,17 +2,22 @@
   "name": "delphi-duel",
   "version": "0.0.1",
   "private": true,
+  "type": "module",
   "packageManager": "pnpm@9.0.0",
   "scripts": {
     "axl:build": "bash axl/scripts/build.sh",
     "axl:keys": "bash axl/scripts/generate-keys.sh",
     "axl:start": "bash axl/scripts/start-mesh.sh",
-    "axl:keys-show": "curl -s http://127.0.0.1:9002/topology | jq .our_public_key && curl -s http://127.0.0.1:9012/topology | jq .our_public_key",
+    "axl:stop": "bash axl/scripts/stop-mesh.sh",
+    "axl:probe": "bash axl/scripts/probe-keys.sh",
+    "axl:keys-show": "echo 'Bull:' && curl -s http://127.0.0.1:9002/topology | jq -r .our_public_key && echo 'Bear:' && curl -s http://127.0.0.1:9012/topology | jq -r .our_public_key",
     "dev:bull": "pnpm --filter @delphi-duel/bull dev",
     "dev:bear": "pnpm --filter @delphi-duel/bear dev",
     "dev:web": "pnpm --filter @delphi-duel/web dev",
     "test:mesh": "tsx scripts/test-mesh.ts",
     "run-duel": "tsx scripts/run-duel.ts",
+    "fetch-market": "tsx scripts/fetch-market.ts",
+    "list-markets": "tsx scripts/list-markets.ts",
     "install:all": "pnpm install"
   },
   "devDependencies": {
@@ -21,6 +26,8 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
+    "@delphi-duel/sdk": "workspace:*",
+    "@delphi-duel/shared-types": "workspace:*",
     "dotenv": "^16.0.0",
     "zod": "^3.22.0"
   }

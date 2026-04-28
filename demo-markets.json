@@ -1,0 +1,46 @@
+{
+  "_comment": "Demo Delphi market IDs picked during Phase 4 testing on mainnet. Use these for the live demo and for run-duel testing. Captured 2026-04-28.",
+  "network": "mainnet",
+  "markets": [
+    {
+      "id": "0xc81b47c859a8b8290c3931d46562b547d283d3f4",
+      "category": "crypto",
+      "question": "Will there be another $10+ million exploit in Crypto before end of May?",
+      "outcomes": ["Yes", "No"],
+      "resolves_at": "2026-05-31T22:00:00Z",
+      "demo_pitch": "Binary, near-term, fact-driven. Bull cites recent exploit cadence, bear cites improving audit/insurance practices."
+    },
+    {
+      "id": "0x069ccd394581b8629b4791d492b4f36f48376fde",
+      "category": "politics",
+      "question": "US x Iran permanent peace deal by May 31, 2026",
+      "outcomes": ["Yes", "No"],
+      "resolves_at": "2026-06-01T03:59:00Z",
+      "demo_pitch": "High-disagreement geopolitical binary. Strong bear case anchors the demo."
+    },
+    {
+      "id": "0xf11086b591b3da32c5b2e24bb46e5ca2332faa5b",
+      "category": "crypto",
+      "question": "Will daily x402 volume hit $3M in 2026?",
+      "outcomes": ["Yes", "No"],
+      "resolves_at": "2026-12-31T16:59:00Z",
+      "demo_pitch": "Crypto-native, requires research. Tests the agents' ability to reason about adoption curves."
+    },
+    {
+      "id": "0xcf1f7963bea5623ae9953499dd9cce4b57cbe197",
+      "category": "crypto",
+      "question": "How High Will BTC Get In April",
+      "outcomes": ["79k-80k", "80k-81k", "81k-82k", "82-83k", "83k-84k"],
+      "resolves_at": "2026-05-01T03:00:00Z",
+      "demo_pitch": "Multi-outcome (5-way). Stress-tests agent reasoning across non-binary spaces."
+    },
+    {
+      "id": "0x90973941f0ecaac8762d25d1c6d664e2434ec61e",
+      "category": "miscellaneous",
+      "question": "Will aliens formally introduce themselves in 2026?",
+      "outcomes": ["Yes", "No"],
+      "resolves_at": "2026-12-31T17:00:00Z",
+      "demo_pitch": "Whimsical, low-stakes — used as a closer if the demo is going long. Bull goes hard, bear keeps it grounded."
+    }
+  ]
+}

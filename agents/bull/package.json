@@ -2,13 +2,15 @@
   "name": "@delphi-duel/bull",
   "version": "0.0.1",
   "private": true,
+  "type": "module",
   "scripts": {
-    "dev": "tsx watch index.ts",
+    "dev": "tsx index.ts",
     "build": "tsc",
     "start": "node dist/index.js"
   },
   "dependencies": {
     "@delphi-duel/agents-shared": "workspace:*",
+    "@delphi-duel/sdk": "workspace:*",
     "@delphi-duel/shared-types": "workspace:*",
     "@anthropic-ai/sdk": "^0.30.0",
     "dotenv": "^16.0.0",
