@@ -2,6 +2,17 @@
   "name": "delphi-duel",
   "version": "0.0.1",
   "private": true,
+  "description": "The second opinion engine for Delphi prediction markets — two AI agents debate any market P2P over Gensyn AXL",
+  "license": "MIT",
+  "keywords": [
+    "delphi",
+    "prediction-markets",
+    "gensyn",
+    "axl",
+    "agents",
+    "ai-agents",
+    "p2p"
+  ],
   "type": "module",
   "packageManager": "pnpm@9.0.0",
   "scripts": {

@@ -1,7 +1,0 @@
-{
-  "PrivateKeyPath": "/Users/MAC/Downloads/delphi/.claude/worktrees/busy-jang-402b89/axl/keys/bull.pem",
-  "Listen": ["tls://0.0.0.0:9001"],
-  "Peers": [],
-  "api_port": 9002,
-  "max_message_size": 16777216
-}

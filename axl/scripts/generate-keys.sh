@@ -37,3 +37,28 @@ generate_if_missing "bear" "$KEYS_DIR/bear.pem"
 echo ""
 echo "Keys present:"
 ls -l "$KEYS_DIR/bull.pem" "$KEYS_DIR/bear.pem"
+
+# Write node configs with absolute key paths for the current machine.
+# These are gitignored — they vary by clone location.
+echo ""
+echo "Writing node configs with absolute key paths..."
+cat > "$AXL_DIR/node-config-1.json" <<JSON
+{
+  "PrivateKeyPath": "$KEYS_DIR/bull.pem",
+  "Listen": ["tls://0.0.0.0:9001"],
+  "Peers": [],
+  "api_port": 9002,
+  "max_message_size": 16777216
+}
+JSON
+cat > "$AXL_DIR/node-config-2.json" <<JSON
+{
+  "PrivateKeyPath": "$KEYS_DIR/bear.pem",
+  "Listen": [],
+  "Peers": ["tls://127.0.0.1:9001"],
+  "api_port": 9012,
+  "max_message_size": 16777216
+}
+JSON
+echo "  $AXL_DIR/node-config-1.json"
+echo "  $AXL_DIR/node-config-2.json"
