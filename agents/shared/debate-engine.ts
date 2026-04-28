@@ -71,8 +71,21 @@ function buildUserPrompt(args: BuildUserPromptArgs): string {
   lines.push(
     `Market-implied P(${isBinary ? "YES" : "champion"}): ${championProb.toFixed(3)}`,
   );
+  // Anchor the agent in time: today's date + days to resolution. Prevents
+  // the model from guessing the time-to-close from training-time priors
+  // (which produced "5+ months" / "16-month window" mistakes in Phase 5
+  // testing on a market that resolved in ~33 days).
+  const today = new Date();
+  const todayIso = today.toISOString().slice(0, 10);
   if (market.close_date) {
+    const resolves = new Date(market.close_date);
+    const daysToResolve = Math.round(
+      (resolves.getTime() - today.getTime()) / 86_400_000,
+    );
+    lines.push(`Today: ${todayIso}  (resolves in ${daysToResolve} days)`);
     lines.push(`Resolves: ${market.close_date}`);
+  } else {
+    lines.push(`Today: ${todayIso}`);
   }
   if (market.category) {
     lines.push(`Category: ${market.category}`);
@@ -171,6 +184,7 @@ function tryParse(text: string): TurnPayload | null {
 /* ---------- public API ---------- */
 
 export interface RunTurnArgs {
+  duel_id: string;
   role: AgentRole;
   market: Market;
   /** 0-indexed outcome being defended. 0 for binary Yes/No markets. */
@@ -180,6 +194,8 @@ export interface RunTurnArgs {
   peerLastMessage: string | null;
   /** This agent's previous `message_to_peer`, if any. Helps avoid repetition. */
   selfLastMessage?: string | null;
+  /** Whether this turn is the producer's last. Bookkeeping; the LLM never sees it. */
+  is_final: boolean;
 }
 
 export async function runTurn(args: RunTurnArgs): Promise<TurnRecord> {
@@ -214,10 +230,12 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnRecord> {
 
   return {
     ...payload,
+    duel_id: args.duel_id,
     round: args.round,
     role: args.role,
     market_id: args.market.id,
     champion_outcome_idx,
+    is_final: args.is_final,
     produced_at: new Date().toISOString(),
   };
 }

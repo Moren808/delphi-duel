@@ -17,8 +17,14 @@ export const TurnPayloadSchema = z.object({
 });
 export type TurnPayload = z.infer<typeof TurnPayloadSchema>;
 
-/** Full record of one turn — what gets piped between agents and (later) stored. */
+/** Full record of one turn — sent over AXL between agents and persisted to SQLite. */
 export const TurnRecordSchema = TurnPayloadSchema.extend({
+  /**
+   * Unique per duel. Bull generates it on startup and includes it in every
+   * turn it sends; bear echoes whatever bull set. Both agents key SQLite
+   * rows by (duel_id, round).
+   */
+  duel_id: z.string().min(1),
   /** Monotonically increasing across the whole duel. Bull opens at 0. */
   round: z.number().int().min(0),
   role: z.enum(["bull", "bear"]),
@@ -29,6 +35,11 @@ export const TurnRecordSchema = TurnPayloadSchema.extend({
    * agents must use the same value.
    */
   champion_outcome_idx: z.number().int().min(0),
+  /**
+   * Set true on the producer's last turn. The receiver, on observing this,
+   * may produce its own final turn and then exit without polling further.
+   */
+  is_final: z.boolean(),
   /** ISO 8601 — when the turn was produced. */
   produced_at: z.string(),
 });
