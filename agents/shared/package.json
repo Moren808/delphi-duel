@@ -24,11 +24,13 @@
     "dev": "tsc --watch"
   },
   "dependencies": {
-    "@delphi-duel/shared-types": "workspace:*",
     "@anthropic-ai/sdk": "^0.30.0",
+    "@delphi-duel/shared-types": "workspace:*",
+    "better-sqlite3": "^11.0.0",
     "zod": "^3.22.0"
   },
   "devDependencies": {
+    "@types/better-sqlite3": "^7.6.0",
     "@types/node": "^20.0.0",
     "typescript": "^5.0.0"
   }
