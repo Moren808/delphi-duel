@@ -8,12 +8,18 @@ importers:
 
   .:
     dependencies:
+      '@delphi-duel/agents-shared':
+        specifier: workspace:*
+        version: link:agents/shared
       '@delphi-duel/sdk':
         specifier: workspace:*
         version: link:shared/sdk
       '@delphi-duel/shared-types':
         specifier: workspace:*
         version: link:shared/types
+      better-sqlite3:
+        specifier: ^11.0.0
+        version: 11.10.0
       dotenv:
         specifier: ^16.0.0
         version: 16.6.1

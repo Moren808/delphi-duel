@@ -26,8 +26,10 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
+    "@delphi-duel/agents-shared": "workspace:*",
     "@delphi-duel/sdk": "workspace:*",
     "@delphi-duel/shared-types": "workspace:*",
+    "better-sqlite3": "^11.0.0",
     "dotenv": "^16.0.0",
     "zod": "^3.22.0"
   }
