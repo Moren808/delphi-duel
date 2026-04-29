@@ -42,6 +42,7 @@
     "@delphi-duel/shared-types": "workspace:*",
     "better-sqlite3": "^11.0.0",
     "dotenv": "^16.0.0",
+    "next": "14.2.0",
     "zod": "^3.22.0"
   }
 }
