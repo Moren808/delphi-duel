@@ -1,5 +1,5 @@
 {
-  "_comment": "Demo Delphi market IDs picked during Phase 4 testing on mainnet. Use these for the live demo and for run-duel testing. Captured 2026-04-28.",
+  "_comment": "10 curated open Delphi mainnet markets for run-duel and the web UI. Captured 2026-04-29. Mix of binary and multi-outcome, resolution dates spread May–Dec 2026.",
   "network": "mainnet",
   "markets": [
     {
@@ -8,15 +8,7 @@
       "question": "Will there be another $10+ million exploit in Crypto before end of May?",
       "outcomes": ["Yes", "No"],
       "resolves_at": "2026-05-31T22:00:00Z",
-      "demo_pitch": "Binary, near-term, fact-driven. Bull cites recent exploit cadence, bear cites improving audit/insurance practices."
-    },
-    {
-      "id": "0x069ccd394581b8629b4791d492b4f36f48376fde",
-      "category": "politics",
-      "question": "US x Iran permanent peace deal by May 31, 2026",
-      "outcomes": ["Yes", "No"],
-      "resolves_at": "2026-06-01T03:59:00Z",
-      "demo_pitch": "High-disagreement geopolitical binary. Strong bear case anchors the demo."
+      "demo_pitch": "Binary, near-term, fact-driven. Bull cites recent exploit cadence, bear cites improving audit/insurance practices. Battle-tested debate dynamics."
     },
     {
       "id": "0xf11086b591b3da32c5b2e24bb46e5ca2332faa5b",
@@ -24,15 +16,116 @@
       "question": "Will daily x402 volume hit $3M in 2026?",
       "outcomes": ["Yes", "No"],
       "resolves_at": "2026-12-31T16:59:00Z",
-      "demo_pitch": "Crypto-native, requires research. Tests the agents' ability to reason about adoption curves."
+      "demo_pitch": "Closest thing to AI/tech in Delphi's catalog. x402 is the agentic-payment protocol; debate is about adoption curves and developer momentum."
     },
     {
-      "id": "0xcf1f7963bea5623ae9953499dd9cce4b57cbe197",
+      "id": "0x52a75af1d153d4dce761d72495a7e0daaf21a170",
       "category": "crypto",
-      "question": "How High Will BTC Get In April",
-      "outcomes": ["79k-80k", "80k-81k", "81k-82k", "82-83k", "83k-84k"],
-      "resolves_at": "2026-05-01T03:00:00Z",
-      "demo_pitch": "Multi-outcome (5-way). Stress-tests agent reasoning across non-binary spaces."
+      "question": "Total Crypto Market Cap By The End of 2026",
+      "outcomes": [
+        "Below 1.5 Trillion",
+        "1.5-2 Trillion",
+        "2-2.5 Trillion",
+        "2.5-3 Trillion",
+        "3-3.5 Trillion",
+        "3.5-4 Trillion",
+        "4-4.5 Trillion",
+        "Above 4.5 Trillion"
+      ],
+      "resolves_at": "2026-12-31T22:59:00Z",
+      "demo_pitch": "Multi-outcome (8 buckets) macro debate. Stress-tests our champion-outcome logic; the orchestrator picks one bucket as YES and the rest as NO."
+    },
+    {
+      "id": "0xe4649da9f8c52b9d6c611627c5a060331079de4a",
+      "category": "sports",
+      "question": "2026 FIFA World Cup Winner",
+      "outcomes": [
+        "Spain",
+        "France",
+        "England",
+        "Argentina",
+        "Brazil",
+        "Portugal",
+        "Germany",
+        "Netherlands",
+        "Norway",
+        "Japan",
+        "Morocco",
+        "Belgium",
+        "Colombia",
+        "USA",
+        "Mexico",
+        "Switzerland",
+        "Uruguay",
+        "Croatia",
+        "Turkiye",
+        "Other"
+      ],
+      "resolves_at": "2026-07-20T19:00:00Z",
+      "demo_pitch": "Universally recognizable. The biggest sports market for this period — every pitch audience has an opinion."
+    },
+    {
+      "id": "0x3e43eee0ccb9ce348eb5d4d0eba29ef4a4e4572d",
+      "category": "sports",
+      "question": "2026 NBA Champion",
+      "outcomes": [
+        "Oklahoma City Thunder",
+        "San Antonio Spurs",
+        "Boston Celtics",
+        "Denver Nuggets",
+        "Cleveland Cavaliers",
+        "New York Knicks",
+        "Detroit Pistons",
+        "Los Angeles Lakers",
+        "Houston Rockets",
+        "Minnesota Timberwolves",
+        "Orlando Magic",
+        "Toronto Raptors",
+        "Portland Trail Blazers",
+        "Atlanta Hawks",
+        "Philadelphia 76ers",
+        "Phoenix Suns",
+        "Other"
+      ],
+      "resolves_at": "2026-06-20T21:00:00Z",
+      "demo_pitch": "Near-term US team-sport multi-outcome. Resolves June so there's still real uncertainty."
+    },
+    {
+      "id": "0xcfe10b08c12388e5e40ae37bbdc86063e54d3ec9",
+      "category": "sports",
+      "question": "2026 F1 Drivers' Champion",
+      "outcomes": [
+        "George Russell",
+        "Kimi Antonelli",
+        "Charles Leclerc",
+        "Oscar Piastri",
+        "Lewis Hamilton",
+        "Lando Norris",
+        "Max Verstappen",
+        "Fernando Alonso",
+        "Nico Hülkenberg",
+        "Pierre Gasly",
+        "Sergio Pérez",
+        "Isack Hadjar",
+        "Oliver Bearman",
+        "Franco Colapinto",
+        "Alexander Albon",
+        "Esteban Ocon",
+        "Liam Lawson",
+        "Arvid Lindblad",
+        "Carlos Sainz Jr.",
+        "Other"
+      ],
+      "resolves_at": "2026-12-07T22:00:00Z",
+      "demo_pitch": "Long-horizon individual sport with 20 candidates. Useful contrast to team sports — agents have to reason about season-long form, team performance, reliability."
+    },
+    {
+      "id": "0x069ccd394581b8629b4791d492b4f36f48376fde",
+      "category": "politics",
+      "question": "US x Iran permanent peace deal by May 31, 2026",
+      "outcomes": ["Yes", "No"],
+      "resolves_at": "2026-06-01T03:59:00Z",
+      "demo_pitch": "High-stakes geopolitics, near-term resolution. Prior demo run had bull open below market at 0.15 and agents converged on NO — showcases honest-analyst behavior."
     },
     {
       "id": "0x90973941f0ecaac8762d25d1c6d664e2434ec61e",
@@ -40,7 +133,23 @@
       "question": "Will aliens formally introduce themselves in 2026?",
       "outcomes": ["Yes", "No"],
       "resolves_at": "2026-12-31T17:00:00Z",
-      "demo_pitch": "Whimsical, low-stakes — used as a closer if the demo is going long. Bull goes hard, bear keeps it grounded."
+      "demo_pitch": "Whimsical closer. Low-stakes, lets agents flex without anyone getting hurt by a wrong answer."
+    },
+    {
+      "id": "0x49e23154d8ae372679342973afb0722e23bf2ffc",
+      "category": "culture",
+      "question": "Will the PS6 get announced in 2026?",
+      "outcomes": ["Yes", "No"],
+      "resolves_at": "2027-01-01T05:00:00Z",
+      "demo_pitch": "Hardware-cycle / Sony-signaling reasoning. Tech-adjacent debate that resonates with Web3 / agentic-product audiences."
+    },
+    {
+      "id": "0xc1425c5405572ba04ed55e42e473dc05beb0784c",
+      "category": "culture",
+      "question": "Will Grand Theft Auto 6 get delayed until 2027?",
+      "outcomes": ["Yes", "No"],
+      "resolves_at": "2026-12-31T17:00:00Z",
+      "demo_pitch": "Notoriously contentious gaming-industry topic. Lots of surface area for both sides — Rockstar's history of delays vs current marketing/build signals."
     }
   ]
 }
