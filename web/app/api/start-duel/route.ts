@@ -60,6 +60,19 @@ export async function GET(): Promise<Response> {
 }
 
 export async function POST(req: Request): Promise<Response> {
+  // Vercel + similar serverless platforms can't spawn a long-running
+  // orchestrator process. Detect deployment env and return a clear
+  // demo-mode error before doing any setup.
+  if (process.env.VERCEL || process.env.NEXT_PUBLIC_DEMO_MODE === "1") {
+    return Response.json(
+      {
+        error:
+          "demo deployment — duels run locally via `pnpm run-duel`. Click 'view example duel' to see a recorded run.",
+      },
+      { status: 503 },
+    );
+  }
+
   const existing = getActive();
   if (existing && existing.child.exitCode == null) {
     return Response.json(

@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { History, Sparkles } from "lucide-react";
 import { Header } from "@/components/header";
 import { MarketPicker } from "@/components/market-picker";
 import { AgentArena } from "@/components/agent-arena";
@@ -13,9 +14,25 @@ import {
   startDuel,
 } from "@/lib/api";
 import { DEMO_MARKETS } from "@/lib/markets";
+import { cn } from "@/lib/cn";
 import type { TurnRecord } from "@/lib/types";
+import exampleDuelFixture from "../fixtures/example-duel.json";
 
 const POLL_MS = 1_000;
+
+// True when the deployment is meant to be a view-only demo (no AXL nodes,
+// no agent processes, no orchestrator). Set NEXT_PUBLIC_DEMO_MODE=1 in
+// Vercel env to enable.
+const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "1";
+
+interface ExampleDuel {
+  duel_id: string;
+  market_id: string;
+  market_question: string;
+  market_category?: string;
+  recorded_at?: string;
+  turns: TurnRecord[];
+}
 
 function lookupMarketQuestion(marketId: string): string {
   const m = DEMO_MARKETS.find((x) => x.id === marketId);
@@ -36,6 +53,11 @@ export default function Home() {
   // duelLive = a child orchestrator is running OR the transcript is
   // incomplete (still expecting more turns).
   const [duelLive, setDuelLive] = useState(false);
+  // Set when the user clicks "view example duel" — disables polling and
+  // suppresses the start button.
+  const [viewingExample, setViewingExample] = useState(false);
+  // Override for the title strip — fixture's market_question fallback.
+  const [titleOverride, setTitleOverride] = useState<string | null>(null);
 
   // Restore active duel on initial mount (page refresh during a duel).
   useEffect(() => {
@@ -57,9 +79,10 @@ export default function Home() {
   }, []);
 
   // Polling loop: while we have a duelId, poll the transcript every
-  // 1s. Stop once both finals have landed.
+  // 1s. Stop once both finals have landed. Skip entirely when viewing
+  // the example fixture (turns come from JSON, not the API).
   useEffect(() => {
-    if (!duelId) return;
+    if (!duelId || viewingExample) return;
 
     let cancelled = false;
     let stopped = false;
@@ -92,7 +115,7 @@ export default function Home() {
       cancelled = true;
       clearInterval(id);
     };
-  }, [duelId]);
+  }, [duelId, viewingExample]);
 
   const handleStart = useCallback(
     async (selectedMarketId: string) => {
@@ -100,6 +123,8 @@ export default function Home() {
       setStarting(true);
       setError(null);
       setTurns([]);
+      setViewingExample(false);
+      setTitleOverride(null);
       try {
         const r = await startDuel(selectedMarketId);
         setDuelId(r.duel_id);
@@ -114,20 +139,73 @@ export default function Home() {
     [starting],
   );
 
+  const handleViewExample = useCallback(() => {
+    const ex = exampleDuelFixture as ExampleDuel;
+    setViewingExample(true);
+    setError(null);
+    setStarting(false);
+    setDuelLive(false);
+    setDuelId(ex.duel_id);
+    setMarketId(ex.market_id);
+    setTurns(ex.turns);
+    setTitleOverride(ex.market_question);
+  }, []);
+
   const duelComplete = isComplete(turns);
-  const marketQuestion = marketId ? lookupMarketQuestion(marketId) : "";
+  const marketQuestion = titleOverride
+    ? titleOverride
+    : marketId
+      ? lookupMarketQuestion(marketId)
+      : "";
 
   return (
     <main className="min-h-screen pb-20">
       <Header />
 
       <div className="mx-auto flex max-w-6xl flex-col gap-5 px-6 py-6">
+        {DEMO_MODE && (
+          <div className="rounded-2xl border-2 border-amber-400 bg-amber-50 px-5 py-4 dark:border-amber-500 dark:bg-amber-950/40">
+            <div className="flex items-start gap-3">
+              <Sparkles className="mt-0.5 h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400" />
+              <div className="flex-1">
+                <p className="font-mono text-xs font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-300">
+                  demo mode
+                </p>
+                <p className="mt-1 text-sm text-amber-900 dark:text-amber-100">
+                  This deployment shows the UI only. Real duels run locally
+                  via the AXL mesh on your laptop. Click{" "}
+                  <span className="font-semibold">view example duel</span>{" "}
+                  below to see a recorded run.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         <MarketPicker
           onStart={handleStart}
-          disabled={duelLive}
+          disabled={duelLive || DEMO_MODE}
           starting={starting}
           initialMarketId={marketId ?? undefined}
         />
+
+        <button
+          type="button"
+          onClick={handleViewExample}
+          disabled={duelLive && !viewingExample}
+          className={cn(
+            "inline-flex items-center justify-center gap-2 self-start rounded-lg",
+            "border-2 border-ink bg-white px-5 py-2.5 font-mono text-sm font-medium",
+            "text-ink transition",
+            "hover:bg-ink hover:text-cream",
+            "dark:border-stone-100 dark:bg-stone-900 dark:text-stone-100",
+            "dark:hover:bg-stone-100 dark:hover:text-stone-950",
+            "disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-white disabled:hover:text-ink",
+          )}
+        >
+          <History className="h-4 w-4" />
+          {viewingExample ? "viewing example duel" : "view example duel"}
+        </button>
 
         {error && (
           <div className="rounded-xl border-2 border-rose-500 bg-rose-50 px-5 py-4 font-mono text-sm text-rose-700 dark:bg-rose-950 dark:text-rose-300">

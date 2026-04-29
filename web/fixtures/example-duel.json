@@ -1,0 +1,61 @@
+{
+  "duel_id": "3ba3a915-ac49-4995-9b01-f7d3d71faf5b",
+  "market_id": "0xc81b47c859a8b8290c3931d46562b547d283d3f4",
+  "market_question": "Will there be another $10+ million exploit in Crypto before end of May?",
+  "market_category": "crypto",
+  "recorded_at": "2026-04-28T16:47:56.804Z",
+  "turns": [
+    {
+      "duel_id": "3ba3a915-ac49-4995-9b01-f7d3d71faf5b",
+      "round": 0,
+      "role": "bull",
+      "market_id": "0xc81b47c859a8b8290c3931d46562b547d283d3f4",
+      "champion_outcome_idx": 0,
+      "probability": 0.65,
+      "confidence": 0.75,
+      "reasoning": "The market at 33.5% severely underprices this risk. Crypto exploits follow a power law distribution where major hacks are more frequent than intuition suggests. We've seen consistent $10M+ exploits throughout 2025-2026 despite improved security practices. The DeFi ecosystem continues expanding with new protocols launching weekly, each introducing novel attack vectors. Bridge protocols remain particularly vulnerable, and we're in a bull market phase where TVL is elevated across platforms. Historical data shows roughly 2-3 major exploits per quarter in active crypto cycles.",
+      "message_to_peer": "The market is pricing this like major exploits are rare black swan events, but they're actually quite regular in crypto. We've maintained a consistent pace of $10M+ hacks even as security has supposedly improved. With 33 days remaining and new protocols launching constantly, the base rate alone suggests this should be priced much higher.",
+      "is_final": false,
+      "produced_at": "2026-04-28T16:47:56.804Z"
+    },
+    {
+      "duel_id": "3ba3a915-ac49-4995-9b01-f7d3d71faf5b",
+      "round": 1,
+      "role": "bear",
+      "market_id": "0xc81b47c859a8b8290c3931d46562b547d283d3f4",
+      "champion_outcome_idx": 0,
+      "probability": 0.22,
+      "confidence": 0.75,
+      "reasoning": "The Bull overweights recent history while ignoring structural improvements. Major protocols have hardened significantly since 2021-2022's exploit wave, with better auditing standards, bug bounty programs, and battle-tested codebases dominating TVL. The low-hanging fruit has been picked. While new protocols do launch, they typically start with minimal TVL that takes months to reach exploit-worthy levels. The 33-day window is actually quite short for a $10M+ exploit to both occur and be discovered/reported.",
+      "message_to_peer": "You're conflating frequency with inevitability. Yes, crypto has seen regular large exploits, but the landscape has shifted - most TVL now sits in battle-tested protocols like Uniswap, AAVE, and Compound that have survived years of adversarial testing. New protocols with fresh attack vectors start small and scale slowly, making a $10M+ exploit in just 33 days less likely than historical base rates suggest.",
+      "is_final": false,
+      "produced_at": "2026-04-28T16:48:05.948Z"
+    },
+    {
+      "duel_id": "3ba3a915-ac49-4995-9b01-f7d3d71faf5b",
+      "round": 2,
+      "role": "bull",
+      "market_id": "0xc81b47c859a8b8290c3931d46562b547d283d3f4",
+      "champion_outcome_idx": 0,
+      "probability": 0.58,
+      "confidence": 0.75,
+      "reasoning": "The Bear makes a fair point about TVL concentration in battle-tested protocols, but misses the evolving attack landscape. Cross-chain bridges remain high-value targets with fresh vulnerabilities - Wormhole ($325M), Ronin ($625M), and Poly Network ($611M) all exploited bridge logic, not just new protocol bugs. Layer 2 rollups are scaling rapidly with novel economic models that create new attack vectors around sequencer MEV and withdrawal delays. Even if core DeFi is hardening, the expanding surface area of cross-chain infrastructure and L2 ecosystems maintains significant exploit risk over 33 days.",
+      "message_to_peer": "You're right that core DeFi protocols have hardened, but you're overlooking where the real action is. Cross-chain bridges and Layer 2 infrastructure are the new high-value targets - they handle massive flows but lack the battle-testing of Uniswap or AAVE. Bridge exploits alone have accounted for over $2B in losses, and with L2 scaling accelerating, we're seeing fresh economic attack vectors emerge monthly.",
+      "is_final": true,
+      "produced_at": "2026-04-28T16:48:15.113Z"
+    },
+    {
+      "duel_id": "3ba3a915-ac49-4995-9b01-f7d3d71faf5b",
+      "round": 3,
+      "role": "bear",
+      "market_id": "0xc81b47c859a8b8290c3931d46562b547d283d3f4",
+      "champion_outcome_idx": 0,
+      "probability": 0.42,
+      "confidence": 0.65,
+      "reasoning": "The Bull makes a compelling point about cross-chain infrastructure being the new attack surface. Bridge exploits have indeed been devastating - Ronin ($625M), Wormhole ($320M), and others prove these systems handle enormous flows while being less mature than core DeFi. L2s are scaling rapidly with complex withdrawal mechanisms and novel economic models that haven't faced sustained adversarial pressure. However, 33 days remains a tight window, and many recent bridge hacks targeted older, less secure implementations. The question becomes whether any current bridge or L2 both has $10M+ at risk and contains an exploitable flaw discoverable within a month.",
+      "message_to_peer": "Fair point on bridges and L2s - they're clearly the highest-risk category right now with massive flows and less battle-testing. But which specific protocols currently have both the TVL to support a $10M+ drain and the kind of fresh vulnerabilities that haven't been caught by auditors and bug bounty hunters? Most major bridges have been hardened after their expensive lessons, and new L2s typically launch with limited TVL that scales gradually.",
+      "is_final": true,
+      "produced_at": "2026-04-28T16:48:24.834Z"
+    }
+  ]
+}
