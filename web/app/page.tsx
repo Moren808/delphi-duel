@@ -130,16 +130,16 @@ export default function Home() {
         />
 
         {error && (
-          <div className="rounded-lg border-2 border-black bg-white px-4 py-3 font-mono text-xs text-black">
+          <div className="rounded-xl border-2 border-rose-500 bg-rose-50 px-5 py-4 font-mono text-sm text-rose-700 dark:bg-rose-950 dark:text-rose-300">
             {error}
           </div>
         )}
 
         {marketId && (
           <>
-            <div className="flex items-center justify-between rounded-lg border border-black bg-white px-4 py-3">
-              <p className="text-sm text-black">{marketQuestion}</p>
-              <p className="font-mono text-[10px] text-gray-500">
+            <div className="flex items-center justify-between rounded-2xl border border-ink bg-white px-5 py-4 dark:border-stone-100 dark:bg-stone-900">
+              <p className="text-lg font-semibold text-ink dark:text-stone-100">{marketQuestion}</p>
+              <p className="font-mono text-xs text-ink-muted dark:text-stone-400">
                 {marketId.slice(0, 12)}…
               </p>
             </div>
@@ -161,12 +161,12 @@ export default function Home() {
         )}
 
         {!marketId && (
-          <div className="rounded-xl border border-dashed border-black bg-white px-6 py-12 text-center">
-            <p className="font-mono text-xs uppercase tracking-wider text-gray-600">
+          <div className="rounded-2xl border-2 border-dashed border-ink/30 bg-white/50 px-6 py-16 text-center dark:border-stone-100/30 dark:bg-stone-900/50">
+            <p className="font-mono text-sm uppercase tracking-wider text-ink-muted dark:text-stone-400">
               ready
             </p>
-            <p className="mt-2 text-sm text-gray-700">
-              pick a market above and press <span className="font-semibold text-black">start duel</span> to begin
+            <p className="mt-3 text-lg text-ink-muted dark:text-stone-400">
+              pick a market above and press <span className="font-semibold text-emerald-600 dark:text-emerald-400">start duel</span> to begin
             </p>
           </div>
         )}

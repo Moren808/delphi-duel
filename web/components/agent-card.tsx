@@ -22,26 +22,32 @@ const COPY = {
 } as const;
 
 export function AgentCard({ role, probability, round, thinking }: Props) {
+  const isBull = role === "bull";
   const { name, verb } = COPY[role];
   const probLabel = probability == null ? "—" : probability.toFixed(3);
+  const accentText = isBull
+    ? "text-emerald-600 dark:text-emerald-400"
+    : "text-rose-600 dark:text-rose-400";
 
   return (
-    <div className="flex flex-col gap-4 rounded-xl border border-black bg-white p-5">
+    <div className="flex flex-col gap-5 rounded-2xl border border-ink bg-white p-6 dark:border-stone-100 dark:bg-stone-900">
       <div className="flex items-start justify-between">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           <AgentAvatar role={role} thinking={thinking} />
           <div>
-            <p className="font-mono text-sm font-semibold text-black">{name}</p>
-            <p className="font-mono text-[10px] uppercase tracking-wider text-gray-600">
+            <p className="text-2xl font-bold tracking-tight text-ink dark:text-stone-100">
+              {name}
+            </p>
+            <p className="font-mono text-[11px] uppercase tracking-wider text-ink-muted dark:text-stone-400">
               {verb}
             </p>
           </div>
         </div>
         <div className="text-right">
-          <p className="font-mono text-[10px] uppercase tracking-wider text-gray-600">
+          <p className="font-mono text-[11px] uppercase tracking-wider text-ink-muted dark:text-stone-400">
             round
           </p>
-          <p className="font-mono text-sm text-black">
+          <p className="font-mono text-base font-semibold text-ink dark:text-stone-100">
             {round == null ? "—" : `r${round}`}
           </p>
         </div>
@@ -55,22 +61,22 @@ export function AgentCard({ role, probability, round, thinking }: Props) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 4 }}
             transition={{ duration: 0.25 }}
-            className="font-mono text-5xl font-semibold tabular-nums tracking-tight text-black"
+            className={`font-mono text-6xl font-bold tabular-nums tracking-tight ${accentText}`}
           >
             {probLabel}
           </motion.span>
         </AnimatePresence>
-        <span className="font-mono text-[10px] uppercase tracking-wider text-gray-600">
+        <span className="font-mono text-xs uppercase tracking-wider text-ink-muted dark:text-stone-400">
           P(YES)
         </span>
       </div>
 
-      <ProbabilityBar probability={probability ?? 0} />
+      <ProbabilityBar probability={probability ?? 0} role={role} />
 
-      <div className="h-5">
+      <div className="h-6">
         {thinking && (
-          <span className="inline-flex items-center gap-2 font-mono text-xs text-gray-700">
-            <Loader2 className="h-3 w-3 animate-spin" />
+          <span className={`inline-flex items-center gap-2 font-mono text-sm ${accentText}`}>
+            <Loader2 className="h-4 w-4 animate-spin" />
             thinking…
           </span>
         )}

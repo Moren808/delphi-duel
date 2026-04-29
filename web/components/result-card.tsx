@@ -86,16 +86,16 @@ export function ResultCard({ turns, marketQuestion, marketId }: Props) {
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className="rounded-xl border-2 border-black bg-white p-5"
+      className="rounded-2xl border-2 border-ink bg-white p-7 dark:border-stone-100 dark:bg-stone-900"
     >
       <div className="mb-4 flex items-center justify-between">
-        <p className="font-mono text-xs font-semibold uppercase tracking-wider text-black">
+        <p className="font-mono text-xs font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
           duel complete
         </p>
-        <p className="font-mono text-[10px] text-gray-500">{marketId.slice(0, 12)}…</p>
+        <p className="font-mono text-xs text-ink-muted dark:text-stone-400">{marketId.slice(0, 12)}…</p>
       </div>
 
-      <h3 className="mb-5 text-lg font-semibold text-black">{marketQuestion}</h3>
+      <h3 className="mb-6 text-2xl font-bold tracking-tight text-ink dark:text-stone-100">{marketQuestion}</h3>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <RoleSummary
@@ -112,12 +112,12 @@ export function ResultCard({ turns, marketQuestion, marketId }: Props) {
         />
       </div>
 
-      <div className="mt-5 grid grid-cols-1 gap-3 border-t border-black pt-4 md:grid-cols-3">
+      <div className="mt-6 grid grid-cols-1 gap-4 border-t border-ink/15 pt-5 dark:border-stone-100/15 md:grid-cols-3">
         <div>
-          <p className="font-mono text-[10px] uppercase tracking-wider text-gray-600">
+          <p className="font-mono text-xs uppercase tracking-wider text-ink-muted dark:text-stone-400">
             who moved more
           </p>
-          <p className="mt-1 font-mono text-sm text-black">
+          <p className="mt-1 font-mono text-base font-semibold text-ink dark:text-stone-100">
             {biggerMover == null
               ? "tied"
               : biggerMover === "bull"
@@ -126,25 +126,25 @@ export function ResultCard({ turns, marketQuestion, marketId }: Props) {
           </p>
         </div>
         <div>
-          <p className="font-mono text-[10px] uppercase tracking-wider text-gray-600">
+          <p className="font-mono text-xs uppercase tracking-wider text-ink-muted dark:text-stone-400">
             final gap
           </p>
-          <p className="mt-1 font-mono text-sm tabular-nums text-black">
+          <p className="mt-1 font-mono text-base font-semibold tabular-nums text-ink dark:text-stone-100">
             {gap.toFixed(3)}{" "}
-            <span className="text-gray-500">(bull − bear)</span>
+            <span className="text-ink-muted dark:text-stone-400">(bull − bear)</span>
           </p>
         </div>
         <div>
-          <p className="font-mono text-[10px] uppercase tracking-wider text-gray-600">
+          <p className="font-mono text-xs uppercase tracking-wider text-ink-muted dark:text-stone-400">
             rounds
           </p>
-          <p className="mt-1 font-mono text-sm text-black">
+          <p className="mt-1 font-mono text-base font-semibold text-ink dark:text-stone-100">
             {turns.length} ({bullTurns.length} bull, {bearTurns.length} bear)
           </p>
         </div>
       </div>
 
-      <div className="mt-4 rounded-lg border border-black bg-white px-4 py-3 text-sm text-black">
+      <div className="mt-5 rounded-xl border border-ink/15 bg-cream px-5 py-4 text-base text-ink dark:border-stone-100/15 dark:bg-stone-950 dark:text-stone-100">
         <p className="font-medium">{verdict.text}</p>
       </div>
     </motion.section>
@@ -159,28 +159,35 @@ interface RoleSummaryProps {
 }
 
 function RoleSummary({ role, open, final, moveLabel }: RoleSummaryProps) {
-  const Icon = role === "bull" ? TrendingUp : TrendingDown;
+  const isBull = role === "bull";
+  const Icon = isBull ? TrendingUp : TrendingDown;
+  const accent = isBull
+    ? "text-emerald-600 dark:text-emerald-400"
+    : "text-rose-600 dark:text-rose-400";
+  const border = isBull
+    ? "border-emerald-500/40"
+    : "border-rose-500/40";
 
   return (
-    <div className="rounded-lg border border-black bg-white p-4">
-      <div className="mb-3 flex items-center gap-2">
-        <Icon className="h-4 w-4 text-black" strokeWidth={2.5} />
-        <span className="font-mono text-xs font-semibold uppercase text-black">
+    <div className={`rounded-xl border-2 ${border} bg-cream p-5 dark:bg-stone-950`}>
+      <div className="mb-4 flex items-center gap-2">
+        <Icon className={`h-5 w-5 ${accent}`} strokeWidth={2.5} />
+        <span className={`font-mono text-sm font-semibold uppercase tracking-wider ${accent}`}>
           {role}
         </span>
       </div>
-      <div className="grid grid-cols-3 gap-2 font-mono text-sm tabular-nums">
+      <div className="grid grid-cols-3 gap-3 font-mono text-base tabular-nums">
         <div>
-          <p className="text-[10px] uppercase tracking-wider text-gray-600">open</p>
-          <p className="text-black">{open.toFixed(3)}</p>
+          <p className="text-xs uppercase tracking-wider text-ink-muted dark:text-stone-400">open</p>
+          <p className="text-ink dark:text-stone-100">{open.toFixed(3)}</p>
         </div>
         <div>
-          <p className="text-[10px] uppercase tracking-wider text-gray-600">final</p>
-          <p className="font-semibold text-black">{final.toFixed(3)}</p>
+          <p className="text-xs uppercase tracking-wider text-ink-muted dark:text-stone-400">final</p>
+          <p className={`font-bold ${accent}`}>{final.toFixed(3)}</p>
         </div>
         <div>
-          <p className="text-[10px] uppercase tracking-wider text-gray-600">move</p>
-          <p className="text-black">{moveLabel}</p>
+          <p className="text-xs uppercase tracking-wider text-ink-muted dark:text-stone-400">move</p>
+          <p className="text-ink dark:text-stone-100">{moveLabel}</p>
         </div>
       </div>
     </div>

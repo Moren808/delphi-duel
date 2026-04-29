@@ -2,12 +2,18 @@ import type { Config } from "tailwindcss";
 
 const config: Config = {
   content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./lib/**/*.{ts,tsx}"],
+  // Class-based dark mode: toggled by adding `dark` to <html>.
+  darkMode: "class",
   theme: {
     extend: {
       colors: {
-        // Monochrome palette only — black/white with grayscale muted text.
-        // Bull and bear are differentiated by labels, icon shape, and
-        // card position, not by hue.
+        // Cream page background matching Delphi's site (warm off-white).
+        cream: "#f5f1e8",
+        // Single ink color so we can switch to white in dark without renaming.
+        ink: {
+          DEFAULT: "#0a0a0a",
+          muted: "#525252",
+        },
       },
       fontFamily: {
         sans: ["ui-sans-serif", "system-ui", "-apple-system", "Segoe UI", "Helvetica", "Arial", "sans-serif"],

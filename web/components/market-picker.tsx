@@ -37,27 +37,28 @@ export function MarketPicker({
   };
 
   return (
-    <section className="rounded-xl border border-black bg-white p-5">
-      <div className="mb-3 flex items-center justify-between">
-        <h2 className="font-mono text-xs uppercase tracking-wider text-gray-600">
+    <section className="rounded-2xl border border-ink bg-white p-6 dark:border-stone-100 dark:bg-stone-900">
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="font-mono text-sm uppercase tracking-wider text-ink dark:text-stone-100">
           market
         </h2>
-        <span className="font-mono text-[10px] text-gray-500">
+        <span className="font-mono text-xs text-ink-muted dark:text-stone-400">
           delphi mainnet
         </span>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_auto]">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_auto]">
         <div className="space-y-2">
           <select
             value={selected}
             onChange={(e) => setSelected(e.target.value)}
             disabled={disabled || starting}
             className={cn(
-              "w-full rounded-md border border-black bg-white px-3 py-2",
-              "font-mono text-sm text-black",
-              "focus:outline-none focus:ring-2 focus:ring-black",
+              "w-full rounded-xl border border-ink bg-cream px-4 py-3",
+              "text-base text-ink",
+              "focus:outline-none focus:ring-2 focus:ring-ink",
               "disabled:cursor-not-allowed disabled:opacity-50",
+              "dark:border-stone-100 dark:bg-stone-950 dark:text-stone-100 dark:focus:ring-stone-100",
             )}
           >
             {DEMO_MARKETS.map((m) => (
@@ -77,15 +78,16 @@ export function MarketPicker({
               disabled={disabled || starting}
               spellCheck={false}
               className={cn(
-                "w-full rounded-md border border-black bg-white px-3 py-2",
-                "font-mono text-sm text-black placeholder:text-gray-400",
-                "focus:outline-none focus:ring-2 focus:ring-black",
+                "w-full rounded-xl border border-ink bg-cream px-4 py-3",
+                "font-mono text-base text-ink placeholder:text-ink-muted",
+                "focus:outline-none focus:ring-2 focus:ring-ink",
+                "dark:border-stone-100 dark:bg-stone-950 dark:text-stone-100 dark:placeholder:text-stone-500 dark:focus:ring-stone-100",
               )}
             />
           )}
 
           {!isCustom && (
-            <p className="font-mono text-[11px] text-gray-500">
+            <p className="font-mono text-xs text-ink-muted dark:text-stone-400">
               {DEMO_MARKETS.find((m) => m.id === selected)?.id ?? ""}
             </p>
           )}
@@ -96,21 +98,21 @@ export function MarketPicker({
           onClick={handleStart}
           disabled={!canStart}
           className={cn(
-            "inline-flex h-10 items-center justify-center gap-2 self-start rounded-md",
-            "border border-black bg-black px-5 font-mono text-sm font-medium",
-            "text-white transition",
-            "hover:bg-white hover:text-black",
-            "disabled:cursor-not-allowed disabled:border-gray-300 disabled:bg-gray-100 disabled:text-gray-400",
+            "inline-flex h-12 items-center justify-center gap-2 self-start rounded-xl px-6",
+            "border-2 border-emerald-500 bg-emerald-500 text-base font-semibold text-white transition",
+            "hover:bg-emerald-600 hover:border-emerald-600",
+            "disabled:cursor-not-allowed disabled:border-stone-300 disabled:bg-stone-200 disabled:text-stone-400",
+            "dark:disabled:border-stone-700 dark:disabled:bg-stone-800 dark:disabled:text-stone-500",
           )}
         >
           {starting ? (
             <>
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 className="h-5 w-5 animate-spin" />
               starting…
             </>
           ) : (
             <>
-              <Play className="h-4 w-4 fill-current" />
+              <Play className="h-5 w-5 fill-current" />
               start duel
             </>
           )}

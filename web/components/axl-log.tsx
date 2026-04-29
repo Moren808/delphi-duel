@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { Radio } from "lucide-react";
+import { cn } from "@/lib/cn";
 import type { TurnRecord } from "@/lib/types";
 
 interface Props {
@@ -51,24 +52,29 @@ function formatTime(iso: string): string {
 export function AxlLog({ turns }: Props) {
   const events = deriveEvents(turns);
 
+  const roleColor = (r: "bull" | "bear") =>
+    r === "bull"
+      ? "text-emerald-600 dark:text-emerald-400"
+      : "text-rose-600 dark:text-rose-400";
+
   return (
-    <section className="rounded-xl border border-black bg-white">
-      <div className="flex items-center gap-2 border-b border-black px-4 py-2.5">
-        <Radio className="h-3.5 w-3.5 text-black" />
-        <p className="font-mono text-[10px] uppercase tracking-wider text-gray-600">
+    <section className="rounded-2xl border border-ink bg-white dark:border-stone-100 dark:bg-stone-900">
+      <div className="flex items-center gap-2 border-b border-ink/15 px-5 py-3 dark:border-stone-100/15">
+        <Radio className="h-4 w-4 text-ink dark:text-stone-100" />
+        <p className="font-mono text-xs uppercase tracking-wider text-ink-muted dark:text-stone-400">
           AXL activity
         </p>
-        <span className="ml-auto font-mono text-[10px] text-gray-500">
+        <span className="ml-auto font-mono text-xs text-ink-muted dark:text-stone-400">
           send / recv
         </span>
       </div>
-      <div className="max-h-44 overflow-y-auto px-4 py-2 font-mono text-[11px]">
+      <div className="max-h-44 overflow-y-auto px-5 py-3 font-mono text-xs">
         {events.length === 0 ? (
-          <p className="py-3 text-center text-gray-500">
+          <p className="py-3 text-center text-ink-muted dark:text-stone-400">
             no AXL traffic yet — start a duel
           </p>
         ) : (
-          <ol className="space-y-1">
+          <ol className="space-y-1.5">
             <AnimatePresence initial={false}>
               {events.map((e) => (
                 <motion.li
@@ -76,16 +82,16 @@ export function AxlLog({ turns }: Props) {
                   initial={{ opacity: 0, x: -4 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.25 }}
-                  className="flex items-center gap-2 text-gray-700"
+                  className="flex items-center gap-2 text-ink dark:text-stone-100"
                 >
-                  <span className="text-gray-500">[{formatTime(e.ts)}]</span>
-                  <span className="font-semibold text-black">{e.from}</span>
-                  <span className="text-gray-500">→</span>
-                  <span className="font-semibold text-black">{e.to}</span>
-                  <span className="text-black">
+                  <span className="text-ink-muted dark:text-stone-500">[{formatTime(e.ts)}]</span>
+                  <span className={cn("font-semibold", roleColor(e.from))}>{e.from}</span>
+                  <span className="text-ink-muted dark:text-stone-500">→</span>
+                  <span className={cn("font-semibold", roleColor(e.to))}>{e.to}</span>
+                  <span>
                     : turn r{e.round}{e.isFinal ? " (final)" : ""}
                   </span>
-                  <span className="ml-auto text-gray-500">{e.bytes} B</span>
+                  <span className="ml-auto text-ink-muted dark:text-stone-500">{e.bytes} B</span>
                 </motion.li>
               ))}
             </AnimatePresence>

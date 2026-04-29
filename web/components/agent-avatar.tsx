@@ -10,29 +10,31 @@ interface Props {
 }
 
 /**
- * Circular avatar — TrendingUp for bull, TrendingDown for bear. In the
- * monochrome theme bull is filled black-on-white, bear is the inverse
- * (white-on-black with a black border) — different shapes plus inverted
- * fill so they read distinctly without relying on hue.
+ * Circular avatar — TrendingUp for bull (emerald accent), TrendingDown
+ * for bear (rose accent). Subtle tinted background, role-colored icon.
+ * Pulsing ring (matching the role color) when this agent is thinking.
  */
 export function AgentAvatar({ role, thinking = false, size = "md" }: Props) {
   const isBull = role === "bull";
-  const dim = size === "sm" ? "h-8 w-8" : "h-12 w-12";
+  const dim = size === "sm" ? "h-9 w-9" : "h-14 w-14";
   const Icon = isBull ? TrendingUp : TrendingDown;
   const colors = isBull
-    ? "border-black bg-white text-black"
-    : "border-black bg-black text-white";
+    ? "border-emerald-500 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+    : "border-rose-500 bg-rose-500/10 text-rose-600 dark:text-rose-400";
+  const pulseRing = isBull
+    ? "ring-emerald-500/60"
+    : "ring-rose-500/60";
 
   return (
     <span
       className={cn(
-        "inline-flex shrink-0 items-center justify-center rounded-full border",
+        "inline-flex shrink-0 items-center justify-center rounded-full border-2",
         dim,
         colors,
-        thinking && "ring-2 ring-black animate-pulse",
+        thinking && cn("ring-2 animate-pulse", pulseRing),
       )}
     >
-      <Icon className={size === "sm" ? "h-4 w-4" : "h-6 w-6"} strokeWidth={2.5} />
+      <Icon className={size === "sm" ? "h-4 w-4" : "h-7 w-7"} strokeWidth={2.5} />
     </span>
   );
 }

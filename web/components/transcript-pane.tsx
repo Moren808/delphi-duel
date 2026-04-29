@@ -31,11 +31,11 @@ export function TranscriptPane({ turns }: Props) {
 
   if (turns.length === 0) {
     return (
-      <section className="rounded-xl border border-black bg-white p-6 text-center">
-        <p className="font-mono text-xs uppercase tracking-wider text-gray-600">
+      <section className="rounded-2xl border border-ink bg-white p-8 text-center dark:border-stone-100 dark:bg-stone-900">
+        <p className="font-mono text-xs uppercase tracking-wider text-ink-muted dark:text-stone-400">
           transcript
         </p>
-        <p className="mt-3 font-mono text-sm text-gray-500">
+        <p className="mt-3 text-base text-ink-muted dark:text-stone-400">
           waiting for the first turn…
         </p>
       </section>
@@ -43,20 +43,20 @@ export function TranscriptPane({ turns }: Props) {
   }
 
   return (
-    <section className="rounded-xl border border-black bg-white">
-      <div className="flex items-center justify-between border-b border-black px-5 py-3">
-        <p className="font-mono text-xs uppercase tracking-wider text-gray-600">
+    <section className="rounded-2xl border border-ink bg-white dark:border-stone-100 dark:bg-stone-900">
+      <div className="flex items-center justify-between border-b border-ink/15 px-6 py-4 dark:border-stone-100/15">
+        <p className="font-mono text-xs uppercase tracking-wider text-ink-muted dark:text-stone-400">
           transcript
         </p>
-        <p className="font-mono text-[10px] text-gray-500">
+        <p className="font-mono text-xs text-ink-muted dark:text-stone-400">
           {turns.length} turn{turns.length === 1 ? "" : "s"}
         </p>
       </div>
       <div
         ref={scrollRef}
-        className="max-h-[28rem] overflow-y-auto px-5 py-4"
+        className="max-h-[32rem] overflow-y-auto px-6 py-5"
       >
-        <ol className="space-y-3">
+        <ol className="space-y-4">
           <AnimatePresence initial={false}>
             {turns.map((t, i) => (
               <TurnRow key={`${t.duel_id}-${t.round}`} turn={t} isLatest={i === turns.length - 1} />
@@ -69,6 +69,14 @@ export function TranscriptPane({ turns }: Props) {
 }
 
 function TurnRow({ turn, isLatest }: { turn: TurnRecord; isLatest: boolean }) {
+  const isBull = turn.role === "bull";
+  const accent = isBull
+    ? "text-emerald-600 dark:text-emerald-400"
+    : "text-rose-600 dark:text-rose-400";
+  const ringColor = isBull
+    ? "ring-emerald-500/60"
+    : "ring-rose-500/60";
+
   return (
     <motion.li
       layout
@@ -76,31 +84,29 @@ function TurnRow({ turn, isLatest }: { turn: TurnRecord; isLatest: boolean }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
       className={cn(
-        "flex items-start gap-3 rounded-lg border border-black bg-white p-4",
-        // Latest turn gets a slightly thicker double-stroke effect via a
-        // 2px-equivalent ring rather than a colored ring.
-        isLatest && "ring-2 ring-black ring-offset-2 ring-offset-white",
+        "flex items-start gap-4 rounded-xl border border-ink/15 bg-cream p-5 dark:border-stone-100/15 dark:bg-stone-950",
+        isLatest && cn("ring-2", ringColor),
       )}
     >
       <AgentAvatar role={turn.role} size="sm" />
-      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-        <div className="flex items-center gap-3">
-          <span className="font-mono text-xs font-semibold uppercase text-black">
+      <div className="flex min-w-0 flex-1 flex-col gap-2">
+        <div className="flex flex-wrap items-center gap-3">
+          <span className={cn("font-mono text-sm font-semibold uppercase tracking-wider", accent)}>
             {turn.role}
           </span>
-          <span className="font-mono text-[10px] uppercase tracking-wider text-gray-600">
+          <span className="font-mono text-xs uppercase tracking-wider text-ink-muted dark:text-stone-400">
             round {turn.round}
           </span>
-          <span className="ml-auto font-mono text-xs tabular-nums text-gray-700">
-            P(YES) <span className="font-semibold text-black">{turn.probability.toFixed(3)}</span>
+          <span className="ml-auto font-mono text-sm tabular-nums text-ink-muted dark:text-stone-400">
+            P(YES) <span className={cn("font-semibold", accent)}>{turn.probability.toFixed(3)}</span>
           </span>
           {turn.is_final && (
-            <span className="rounded border border-black px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider text-black">
+            <span className="rounded-full border border-emerald-500 px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
               final
             </span>
           )}
         </div>
-        <p className="text-sm leading-relaxed text-black">
+        <p className="text-base leading-relaxed text-ink dark:text-stone-100">
           {turn.message_to_peer}
         </p>
       </div>

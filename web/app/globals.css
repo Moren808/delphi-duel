@@ -4,10 +4,21 @@
 
 @layer base {
   html {
-    background: #ffffff;
+    /* Base font scale bumped to match Delphi's roomy display. */
+    font-size: 17px;
+    background: #f5f1e8;
+  }
+  html.dark {
+    background: #0a0a0a;
+    color-scheme: dark;
+  }
+  html:not(.dark) {
     color-scheme: light;
   }
   body {
-    @apply bg-white text-black antialiased;
+    @apply bg-cream text-ink antialiased;
+  }
+  .dark body {
+    @apply bg-stone-950 text-stone-100;
   }
 }
