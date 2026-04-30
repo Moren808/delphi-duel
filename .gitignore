@@ -32,6 +32,11 @@ dist/
 .next/
 out/
 web/next-env.d.ts
+web/*.tsbuildinfo
+
+# Claude Code local session state — auto-accumulates per-session
+# permission entries; not project source.
+.claude/settings.local.json
 
 # Logs
 *.log
