@@ -31,11 +31,14 @@ export function TranscriptPane({ turns }: Props) {
 
   if (turns.length === 0) {
     return (
-      <section className="rounded-2xl border border-ink bg-white p-8 text-center dark:border-stone-100 dark:bg-stone-900">
-        <p className="font-mono text-xs uppercase tracking-wider text-ink-muted dark:text-stone-400">
-          transcript
+      <section className="rounded-2xl border border-ink bg-white p-8 dark:border-stone-100 dark:bg-stone-900">
+        <p className="font-mono text-sm font-semibold uppercase tracking-wider text-ink dark:text-stone-100">
+          Debate Transcript
         </p>
-        <p className="mt-3 text-base text-ink-muted dark:text-stone-400">
+        <p className="text-sm text-ink-muted dark:text-stone-400">
+          full reasoning from each agent per round
+        </p>
+        <p className="mt-4 text-base text-ink-muted dark:text-stone-400">
           waiting for the first turn…
         </p>
       </section>
@@ -44,11 +47,16 @@ export function TranscriptPane({ turns }: Props) {
 
   return (
     <section className="rounded-2xl border border-ink bg-white dark:border-stone-100 dark:bg-stone-900">
-      <div className="flex items-center justify-between border-b border-ink/15 px-6 py-4 dark:border-stone-100/15">
+      <div className="flex items-center justify-between gap-4 border-b border-ink/15 px-6 py-4 dark:border-stone-100/15">
+        <div>
+          <p className="font-mono text-sm font-semibold uppercase tracking-wider text-ink dark:text-stone-100">
+            Debate Transcript
+          </p>
+          <p className="text-sm text-ink-muted dark:text-stone-400">
+            full reasoning from each agent per round
+          </p>
+        </div>
         <p className="font-mono text-xs uppercase tracking-wider text-ink-muted dark:text-stone-400">
-          transcript
-        </p>
-        <p className="font-mono text-xs text-ink-muted dark:text-stone-400">
           {turns.length} turn{turns.length === 1 ? "" : "s"}
         </p>
       </div>

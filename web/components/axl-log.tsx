@@ -59,12 +59,17 @@ export function AxlLog({ turns }: Props) {
 
   return (
     <section className="rounded-2xl border border-ink bg-white dark:border-stone-100 dark:bg-stone-900">
-      <div className="flex items-center gap-2 border-b border-ink/15 px-5 py-3 dark:border-stone-100/15">
-        <Radio className="h-4 w-4 text-ink dark:text-stone-100" />
-        <p className="font-mono text-xs uppercase tracking-wider text-ink-muted dark:text-stone-400">
-          AXL activity
-        </p>
-        <span className="ml-auto font-mono text-xs text-ink-muted dark:text-stone-400">
+      <div className="flex items-start gap-3 border-b border-ink/15 px-5 py-4 dark:border-stone-100/15">
+        <Radio className="mt-0.5 h-4 w-4 shrink-0 text-ink dark:text-stone-100" />
+        <div className="flex-1">
+          <p className="font-mono text-sm font-semibold uppercase tracking-wider text-ink dark:text-stone-100">
+            Mesh Traffic
+          </p>
+          <p className="text-sm text-ink-muted dark:text-stone-400">
+            peer-to-peer messages crossing the AXL nodes
+          </p>
+        </div>
+        <span className="font-mono text-xs uppercase tracking-wider text-ink-muted dark:text-stone-400">
           send / recv
         </span>
       </div>
