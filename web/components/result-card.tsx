@@ -41,9 +41,13 @@ function computeVerdict(
       text: `agents converged near a coin flip (mean ${meanFinal.toFixed(2)}, gap ${gap.toFixed(2)})`,
     };
   }
+  // Roles are fixed: bull always argues YES, bear always argues NO.
+  // Reporting "bull holds NO" is a category error even when bullFinal
+  // drops below 0.5 — that just means bull's YES case weakened, not
+  // that bull switched sides.
   return {
     tone: "disagree",
-    text: `agents disagree — bull holds ${bullFinal >= 0.5 ? "YES" : "NO"} at ${bullFinal.toFixed(2)}, bear at ${bearFinal.toFixed(2)} (gap ${gap.toFixed(2)})`,
+    text: `agents disagree — bull holds YES at ${bullFinal.toFixed(2)}, bear holds NO at ${bearFinal.toFixed(2)} (gap ${gap.toFixed(2)})`,
   };
 }
 
