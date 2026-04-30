@@ -250,6 +250,32 @@ export async function runAgent(opts: RunAgentOptions): Promise<void> {
   // isn't running or its pubkey isn't in public-keys.json, the warning
   // is non-fatal; the verdict simply won't be produced.
   if (role === "bull" && duelId) {
+    // Wait for bear's final response before broadcasting. Bull's main
+    // loop exits as soon as it produces its own last turn, but bear's
+    // reply lands after — we need that turn in SQLite before shipping
+    // to the judge, otherwise the transcript is one short.
+    const expectedTotal = myMaxTurns * 2; // assumes symmetric turn counts
+    let attempts = 0;
+    while (db.listTurns(duelId).length < expectedTotal && attempts < 60) {
+      try {
+        const tail = await recvWait(ourApiPort, 5_000);
+        const parsed = TurnRecordSchema.safeParse(JSON.parse(tail.body));
+        if (parsed.success && parsed.data.duel_id === duelId) {
+          db.insertTurn(parsed.data);
+          logTurn(role, parsed.data);
+        }
+      } catch {
+        /* timeout — try again, give up after 60 attempts (~5min) */
+      }
+      attempts++;
+    }
+    const finalCount = db.listTurns(duelId).length;
+    if (finalCount < expectedTotal) {
+      console.error(
+        `[${role}] transcript only has ${finalCount}/${expectedTotal} turns after ${attempts} polls — broadcasting partial`,
+      );
+    }
+
     const judge = peerKeys.judge;
     if (!judge) {
       console.error(
