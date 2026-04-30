@@ -14,7 +14,7 @@ import Database from "better-sqlite3";
 import type { Database as DatabaseType } from "better-sqlite3";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import type { TurnRecord } from "./protocol.js";
+import type { TurnRecord, VerdictRecord } from "./protocol.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -39,6 +39,20 @@ CREATE TABLE IF NOT EXISTS turns (
 );
 
 CREATE INDEX IF NOT EXISTS idx_turns_market ON turns(market_id, produced_at);
+
+CREATE TABLE IF NOT EXISTS verdicts (
+  duel_id              TEXT    PRIMARY KEY,
+  market_id            TEXT    NOT NULL,
+  winner               TEXT    NOT NULL CHECK (winner IN ('bull','bear','inconclusive')),
+  confidence           REAL    NOT NULL,
+  reasoning            TEXT    NOT NULL,
+  suggested_lean       TEXT    NOT NULL,
+  recommended_position TEXT    NOT NULL,
+  produced_at          TEXT    NOT NULL,
+  inserted_at          TEXT    NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_verdicts_market ON verdicts(market_id, produced_at);
 `;
 
 const INSERT_SQL = `
@@ -53,9 +67,21 @@ INSERT OR REPLACE INTO turns (
 )
 `;
 
+const INSERT_VERDICT_SQL = `
+INSERT OR REPLACE INTO verdicts (
+  duel_id, market_id, winner, confidence, reasoning,
+  suggested_lean, recommended_position, produced_at
+) VALUES (
+  @duel_id, @market_id, @winner, @confidence, @reasoning,
+  @suggested_lean, @recommended_position, @produced_at
+)
+`;
+
 export interface DuelDb {
   insertTurn(t: TurnRecord): void;
   listTurns(duelId: string): TurnRecord[];
+  insertVerdict(v: VerdictRecord): void;
+  getVerdict(duelId: string): VerdictRecord | null;
   close(): void;
   path: string;
 }
@@ -69,6 +95,10 @@ export function openDb(dbPath: string = DEFAULT_DB_PATH): DuelDb {
   const insertStmt = db.prepare(INSERT_SQL);
   const listStmt = db.prepare(
     "SELECT * FROM turns WHERE duel_id = ? ORDER BY round ASC",
+  );
+  const insertVerdictStmt = db.prepare(INSERT_VERDICT_SQL);
+  const getVerdictStmt = db.prepare(
+    "SELECT * FROM verdicts WHERE duel_id = ?",
   );
 
   return {
@@ -92,9 +122,48 @@ export function openDb(dbPath: string = DEFAULT_DB_PATH): DuelDb {
       const rows = listStmt.all(duelId) as Array<Record<string, unknown>>;
       return rows.map(rowToTurn);
     },
+    insertVerdict(v: VerdictRecord): void {
+      insertVerdictStmt.run({
+        duel_id: v.duel_id,
+        market_id: v.market_id,
+        winner: v.winner,
+        confidence: v.confidence,
+        reasoning: v.reasoning,
+        suggested_lean: v.suggested_lean,
+        recommended_position: v.recommended_position,
+        produced_at: v.produced_at,
+      });
+    },
+    getVerdict(duelId: string): VerdictRecord | null {
+      const row = getVerdictStmt.get(duelId) as
+        | Record<string, unknown>
+        | undefined;
+      return row ? rowToVerdict(row) : null;
+    },
     close(): void {
       db.close();
     },
+  };
+}
+
+function rowToVerdict(r: Record<string, unknown>): VerdictRecord {
+  return {
+    duel_id: r.duel_id as string,
+    market_id: r.market_id as string,
+    winner: r.winner as "bull" | "bear" | "inconclusive",
+    confidence: r.confidence as number,
+    reasoning: r.reasoning as string,
+    suggested_lean: r.suggested_lean as
+      | "lean YES"
+      | "lean NO"
+      | "too close to call",
+    recommended_position: r.recommended_position as
+      | "strong YES"
+      | "moderate YES"
+      | "neutral"
+      | "moderate NO"
+      | "strong NO",
+    produced_at: r.produced_at as string,
   };
 }
 
