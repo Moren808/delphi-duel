@@ -25,7 +25,12 @@ import {
   drainRecv,
   getTopology,
 } from "./axl-client.js";
-import { TurnRecordSchema, type TurnRecord, type AgentRole } from "./protocol.js";
+import {
+  TurnRecordSchema,
+  type DuelTranscript,
+  type TurnRecord,
+  type AgentRole,
+} from "./protocol.js";
 import { runTurn } from "./debate-engine.js";
 import { openDb, DEFAULT_DB_PATH, type DuelDb } from "./storage.js";
 
@@ -34,6 +39,8 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 interface PeerKeysFile {
   bull: { pubkey: string; axl_peer_id: string };
   bear: { pubkey: string; axl_peer_id: string };
+  /** Optional — present once Phase 9 keys have been probed. */
+  judge?: { pubkey: string; axl_peer_id: string };
 }
 
 /** Default port map per AGENTS.md. */
@@ -235,5 +242,41 @@ export async function runAgent(opts: RunAgentOptions): Promise<void> {
   }
 
   console.error(`[${role}] duel ${duelId} complete (${myTurnsDone} turn(s) produced)`);
+
+  // Coordinator hand-off: bull (and only bull) broadcasts the full
+  // ordered transcript to the judge after the duel finishes. The judge
+  // is a long-running daemon polling /recv, so this single /send is
+  // enough to trigger verdict generation. Best-effort — if the judge
+  // isn't running or its pubkey isn't in public-keys.json, the warning
+  // is non-fatal; the verdict simply won't be produced.
+  if (role === "bull" && duelId) {
+    const judge = peerKeys.judge;
+    if (!judge) {
+      console.error(
+        `[${role}] no judge entry in public-keys.json — skipping verdict broadcast (run pnpm axl:probe to capture all 3 keys)`,
+      );
+    } else {
+      const finalTurns = db.listTurns(duelId);
+      const transcript: DuelTranscript = {
+        type: "duel_transcript",
+        duel_id: duelId,
+        market_id: marketId,
+        market_question:
+          market.prompt.split("\n").find((l) => l.trim().length > 0) ?? marketId,
+        turns: finalTurns,
+      };
+      try {
+        await send(ourApiPort, judge.pubkey, JSON.stringify(transcript));
+        console.error(
+          `[${role}] broadcast transcript → judge (${finalTurns.length} turns, ${JSON.stringify(transcript).length} bytes)`,
+        );
+      } catch (err) {
+        console.error(
+          `[${role}] could not reach judge (${(err as Error).message}) — non-fatal`,
+        );
+      }
+    }
+  }
+
   db.close();
 }
