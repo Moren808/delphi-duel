@@ -84,9 +84,9 @@ export async function POST(req: Request): Promise<Response> {
     );
   }
 
-  let body: { market_id?: string };
+  let body: { market_id?: string; bull_outcome?: string; bear_outcome?: string };
   try {
-    body = (await req.json()) as { market_id?: string };
+    body = (await req.json()) as typeof body;
   } catch {
     return Response.json({ error: "invalid JSON body" }, { status: 400 });
   }
@@ -97,15 +97,40 @@ export async function POST(req: Request): Promise<Response> {
       { status: 400 },
     );
   }
+  // Multi-outcome head-to-head: both must be present together and distinct.
+  // Binary markets simply omit them.
+  const bullOutcome = body.bull_outcome?.trim() || null;
+  const bearOutcome = body.bear_outcome?.trim() || null;
+  if ((bullOutcome && !bearOutcome) || (!bullOutcome && bearOutcome)) {
+    return Response.json(
+      { error: "bull_outcome and bear_outcome must be provided together" },
+      { status: 400 },
+    );
+  }
+  if (bullOutcome && bearOutcome && bullOutcome === bearOutcome) {
+    return Response.json(
+      { error: "bull_outcome and bear_outcome must be different" },
+      { status: 400 },
+    );
+  }
 
   const duelId = randomUUID();
   const root = repoRoot();
   const runDuelPath = resolve(root, "scripts/run-duel.ts");
 
+  const childEnv: NodeJS.ProcessEnv = {
+    ...process.env,
+    DELPHI_DUEL_ID: duelId,
+  };
+  if (bullOutcome && bearOutcome) {
+    childEnv.DELPHI_BULL_OUTCOME = bullOutcome;
+    childEnv.DELPHI_BEAR_OUTCOME = bearOutcome;
+  }
+
   const child = spawn("pnpm", ["exec", "tsx", runDuelPath, marketId], {
     cwd: root,
     stdio: ["ignore", "pipe", "pipe"],
-    env: { ...process.env, DELPHI_DUEL_ID: duelId },
+    env: childEnv,
   });
 
   child.stderr?.on("data", (chunk: Buffer) => {

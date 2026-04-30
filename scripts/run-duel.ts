@@ -266,6 +266,15 @@ async function main(): Promise<void> {
   const marketId = pickMarketId(process.argv[2]);
 
   console.error(`${BOLD}[orchestrator]${RESET} duel target: ${marketId}`);
+  const bullOutcome = process.env.DELPHI_BULL_OUTCOME;
+  const bearOutcome = process.env.DELPHI_BEAR_OUTCOME;
+  if (bullOutcome && bearOutcome) {
+    console.error(
+      `${BOLD}[orchestrator]${RESET} mode: outcome head-to-head — ${GREEN}${bullOutcome}${RESET} vs ${RED}${bearOutcome}${RESET}`,
+    );
+  } else {
+    console.error(`${DIM}[orchestrator] mode: binary YES/NO${RESET}`);
+  }
   await ensureMesh();
 
   console.error(`${DIM}[orchestrator] fetching market metadata...${RESET}`);
