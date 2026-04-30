@@ -30,4 +30,19 @@ export interface Market {
 
   /** Delphi category (crypto, culture, economics, miscellaneous, politics, sports). */
   category?: string;
+
+  /**
+   * "binary" when there are exactly 2 outcomes (treated as YES/NO);
+   * "multi_outcome" when there are 3+ outcomes (each is a candidate
+   * the user can pick for one side of the debate).
+   */
+  market_type: "binary" | "multi_outcome";
+
+  /**
+   * Outcomes paired with their implied probabilities, in canonical
+   * (on-chain) order — same length and ordering as `outcomes`. Provided
+   * for both binary and multi-outcome markets so UI code can render
+   * "Outcome (XX.X%)" labels uniformly.
+   */
+  outcomes_list: Array<{ name: string; probability: number }>;
 }

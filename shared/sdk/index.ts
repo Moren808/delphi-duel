@@ -158,6 +158,18 @@ export async function fetchMarket(marketId: string): Promise<Market> {
     (await deriveImpliedProbabilities(sdkMarket.id, outcomes.length)) ??
     uniformPrior(outcomes.length);
 
+  // Pair outcomes + probabilities for the UI; same canonical (on-chain)
+  // order. Sorting is left to the caller (the picker sorts by prob to
+  // pick defaults but renders the dropdown in canonical order).
+  const outcomes_list = outcomes.map((name, i) => ({
+    name,
+    probability: probs[i] ?? 0,
+  }));
+
+  // Binary = exactly 2 outcomes (Yes/No-style). Anything else is multi.
+  const market_type: "binary" | "multi_outcome" =
+    outcomes.length === 2 ? "binary" : "multi_outcome";
+
   return {
     id: sdkMarket.id,
     prompt,
@@ -165,6 +177,8 @@ export async function fetchMarket(marketId: string): Promise<Market> {
     implied_probabilities: probs,
     close_date,
     category: sdkMarket.category || metadata.category || undefined,
+    market_type,
+    outcomes_list,
   };
 }
 
