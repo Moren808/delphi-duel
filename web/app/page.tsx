@@ -9,6 +9,7 @@ import { AgentArena } from "@/components/agent-arena";
 import { TranscriptPane } from "@/components/transcript-pane";
 import { AxlLog } from "@/components/axl-log";
 import { ResultCard } from "@/components/result-card";
+import { VerdictCard } from "@/components/verdict-card";
 import {
   fetchActiveDuel,
   fetchTranscript,
@@ -16,7 +17,7 @@ import {
 } from "@/lib/api";
 import { DEMO_MARKETS } from "@/lib/markets";
 import { cn } from "@/lib/cn";
-import type { TurnRecord } from "@/lib/types";
+import type { TurnRecord, VerdictRecord } from "@/lib/types";
 import exampleDuelFixture from "../fixtures/example-duel.json";
 
 const POLL_MS = 1_000;
@@ -33,6 +34,8 @@ interface ExampleDuel {
   market_category?: string;
   recorded_at?: string;
   turns: TurnRecord[];
+  /** Optional — pre-baked judge verdict for the example replay. */
+  verdict?: VerdictRecord;
 }
 
 function lookupMarketQuestion(marketId: string): string {
@@ -59,6 +62,10 @@ export default function Home() {
   const [viewingExample, setViewingExample] = useState(false);
   // Override for the title strip — fixture's market_question fallback.
   const [titleOverride, setTitleOverride] = useState<string | null>(null);
+  // Inline verdict override — set when replaying the example fixture
+  // (fixture has a baked-in verdict so VerdictCard can render without
+  // polling). Cleared on real duels (live polling via /api/verdict).
+  const [inlineVerdict, setInlineVerdict] = useState<VerdictRecord | null>(null);
   // The market currently selected in the picker dropdown — drives the
   // MarketSummaryCard before any duel starts. Distinct from `marketId`,
   // which only flips after Start Duel is clicked.
@@ -130,6 +137,7 @@ export default function Home() {
       setTurns([]);
       setViewingExample(false);
       setTitleOverride(null);
+      setInlineVerdict(null);
       try {
         const r = await startDuel(selectedMarketId);
         setDuelId(r.duel_id);
@@ -154,6 +162,7 @@ export default function Home() {
     setMarketId(ex.market_id);
     setTurns(ex.turns);
     setTitleOverride(ex.market_question);
+    setInlineVerdict(ex.verdict ?? null);
   }, []);
 
   const duelComplete = isComplete(turns);
@@ -242,6 +251,14 @@ export default function Home() {
                 turns={turns}
                 marketQuestion={marketQuestion}
                 marketId={marketId}
+              />
+            )}
+
+            {duelComplete && duelId && (
+              <VerdictCard
+                duelId={duelId}
+                duelComplete={duelComplete}
+                inlineVerdict={inlineVerdict}
               />
             )}
 

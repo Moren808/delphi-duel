@@ -50,14 +50,20 @@ export function MeshStatusIndicator() {
     };
   }, []);
 
+  // All three nodes peered through bull?
   const peering =
-    status?.detail?.bull?.peering === true && status?.detail?.bear?.peering === true;
+    status?.detail?.bull?.peering === true &&
+    status?.detail?.bear?.peering === true &&
+    status?.detail?.judge?.peering === true;
+  // Bare reachability fallback — at least all three /topology endpoints
+  // answered, but we couldn't confirm peering (one node hadn't seen
+  // the others in its peer list yet).
+  const allReachable = status?.bull && status?.bear && status?.judge;
 
   return (
     <div
       className={cn(
         "flex items-center gap-4 rounded-lg border bg-white px-4 py-2 dark:bg-stone-900",
-        // Green border + green text when peered (mirrors Delphi's "Balance" pill).
         peering
           ? "border-emerald-500 text-emerald-600 dark:text-emerald-400"
           : "border-ink dark:border-stone-100",
@@ -73,11 +79,16 @@ export function MeshStatusIndicator() {
       </span>
       <Dot label="bull :9002" up={status?.bull} />
       <Dot label="bear :9012" up={status?.bear} />
-      {peering && (
+      <Dot label="judge :9022" up={status?.judge} />
+      {peering ? (
         <span className="font-mono text-[11px] font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
           peered
         </span>
-      )}
+      ) : allReachable ? (
+        <span className="font-mono text-[11px] uppercase tracking-wider text-ink-muted dark:text-stone-400">
+          settling
+        </span>
+      ) : null}
       {error && <span className="text-[11px] text-rose-500">{error}</span>}
     </div>
   );

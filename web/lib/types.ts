@@ -25,10 +25,29 @@ export interface TurnRecord {
 export interface MeshStatus {
   bull: boolean;
   bear: boolean;
+  judge: boolean;
   detail?: {
     bull?: { reachable: boolean; public_key?: string; peering?: boolean | null };
     bear?: { reachable: boolean; public_key?: string; peering?: boolean | null };
+    judge?: { reachable: boolean; public_key?: string; peering?: boolean | null };
   };
+}
+
+export interface VerdictRecord {
+  duel_id: string;
+  market_id: string;
+  winner: "bull" | "bear" | "inconclusive";
+  confidence: number;
+  reasoning: string;
+  suggested_lean: "lean YES" | "lean NO" | "too close to call" | string;
+  recommended_position:
+    | "strong YES"
+    | "moderate YES"
+    | "neutral"
+    | "moderate NO"
+    | "strong NO"
+    | string;
+  produced_at: string;
 }
 
 export interface DemoMarket {

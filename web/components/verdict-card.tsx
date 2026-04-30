@@ -1,0 +1,161 @@
+"use client";
+
+import { motion } from "framer-motion";
+import { Crown, Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { fetchVerdict } from "@/lib/api";
+import { cn } from "@/lib/cn";
+import type { VerdictRecord } from "@/lib/types";
+
+const POLL_MS = 1_500;
+
+interface Props {
+  duelId: string;
+  /** When true, we know the duel is over — start polling for the verdict. */
+  duelComplete: boolean;
+  /**
+   * Pre-supplied verdict (e.g. when replaying the example fixture).
+   * If passed, no polling happens.
+   */
+  inlineVerdict?: VerdictRecord | null;
+}
+
+const POSITION_BG: Record<string, string> = {
+  "strong YES": "bg-emerald-500",
+  "moderate YES": "bg-emerald-500/70",
+  "neutral": "bg-stone-500",
+  "moderate NO": "bg-rose-500/70",
+  "strong NO": "bg-rose-500",
+};
+
+export function VerdictCard({ duelId, duelComplete, inlineVerdict }: Props) {
+  const [verdict, setVerdict] = useState<VerdictRecord | null>(inlineVerdict ?? null);
+  const [polling, setPolling] = useState<boolean>(!inlineVerdict && duelComplete);
+
+  // If a fixture verdict was passed, lock it in and don't poll.
+  useEffect(() => {
+    if (inlineVerdict) {
+      setVerdict(inlineVerdict);
+      setPolling(false);
+    }
+  }, [inlineVerdict]);
+
+  useEffect(() => {
+    if (inlineVerdict) return;
+    if (!duelComplete) return;
+    if (verdict) return;
+
+    let cancelled = false;
+    setPolling(true);
+
+    const tick = async () => {
+      if (cancelled) return;
+      try {
+        const v = await fetchVerdict(duelId);
+        if (cancelled) return;
+        if (v) {
+          setVerdict(v);
+          setPolling(false);
+        }
+      } catch {
+        /* non-fatal — keep polling */
+      }
+    };
+    void tick();
+    const id = setInterval(() => {
+      if (verdict) {
+        clearInterval(id);
+        return;
+      }
+      void tick();
+    }, POLL_MS);
+
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+    };
+  }, [duelId, duelComplete, verdict, inlineVerdict]);
+
+  // Don't render until the duel is complete. Avoids visual noise mid-debate.
+  if (!duelComplete) return null;
+
+  // While polling, show a placeholder so users see the judge is working.
+  if (!verdict) {
+    return (
+      <section className="rounded-2xl border-2 border-ink bg-ink p-6 text-cream dark:border-stone-100 dark:bg-stone-100 dark:text-stone-950">
+        <div className="flex items-center gap-3">
+          <Loader2 className="h-5 w-5 animate-spin" />
+          <p className="font-mono text-sm font-semibold uppercase tracking-wider">
+            judge deliberating…
+          </p>
+        </div>
+        <p className="mt-2 text-sm opacity-70">
+          third AXL node received the transcript and is calling Claude with the
+          judge prompt. {polling ? "polling for verdict every 1.5s." : ""}
+        </p>
+      </section>
+    );
+  }
+
+  const winnerLabel =
+    verdict.winner === "inconclusive"
+      ? "INCONCLUSIVE"
+      : `${verdict.winner.toUpperCase()} WINS`;
+  const positionBg = POSITION_BG[verdict.recommended_position] ?? "bg-stone-500";
+
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className="rounded-2xl border-2 border-ink bg-ink p-6 text-cream dark:border-stone-100 dark:bg-stone-100 dark:text-stone-950"
+    >
+      {/* Header */}
+      <div className="mb-5 flex items-start justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <Crown className="h-6 w-6 text-amber-400 dark:text-amber-500" strokeWidth={2.5} />
+          <div>
+            <p className="font-mono text-xs font-semibold uppercase tracking-wider opacity-70">
+              judge verdict
+            </p>
+            <p className="font-mono text-2xl font-bold tracking-tight">
+              {winnerLabel}
+            </p>
+          </div>
+        </div>
+        <div className="text-right">
+          <p className="font-mono text-[11px] uppercase tracking-wider opacity-70">
+            confidence
+          </p>
+          <p className="font-mono text-2xl font-bold tabular-nums">
+            {(verdict.confidence * 100).toFixed(0)}%
+          </p>
+        </div>
+      </div>
+
+      {/* Reasoning */}
+      <p className="mb-5 text-base leading-relaxed">
+        {verdict.reasoning}
+      </p>
+
+      {/* Recommended position — large badge */}
+      <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:gap-4">
+        <p className="font-mono text-[11px] uppercase tracking-wider opacity-70">
+          recommended position
+        </p>
+        <div
+          className={cn(
+            "inline-flex items-center justify-center rounded-lg px-5 py-3",
+            "font-mono text-2xl font-bold uppercase tracking-tight text-white",
+            positionBg,
+          )}
+        >
+          {verdict.recommended_position}
+        </div>
+        <p className="font-mono text-sm opacity-70 sm:ml-auto">
+          {verdict.suggested_lean}
+        </p>
+      </div>
+    </motion.section>
+  );
+}

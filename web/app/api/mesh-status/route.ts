@@ -12,6 +12,7 @@ export const dynamic = "force-dynamic";
 
 const BULL_API = "http://127.0.0.1:9002";
 const BEAR_API = "http://127.0.0.1:9012";
+const JUDGE_API = "http://127.0.0.1:9022";
 
 interface Topology {
   our_public_key: string;
@@ -49,13 +50,17 @@ async function probe(api: string, otherApi: string) {
 }
 
 export async function GET(): Promise<Response> {
-  const [bull, bear] = await Promise.all([
+  // Each node's "peering" check uses bull as the canonical anchor —
+  // bull is the listener, bear and judge dial out to bull.
+  const [bull, bear, judge] = await Promise.all([
     probe(BULL_API, BEAR_API),
     probe(BEAR_API, BULL_API),
+    probe(JUDGE_API, BULL_API),
   ]);
   return Response.json({
     bull: bull.reachable,
     bear: bear.reachable,
-    detail: { bull, bear },
+    judge: judge.reachable,
+    detail: { bull, bear, judge },
   });
 }

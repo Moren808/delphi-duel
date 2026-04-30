@@ -3,7 +3,7 @@
  * Centralises error handling so components stay focused on UI.
  */
 
-import type { MeshStatus, TurnRecord } from "./types";
+import type { MeshStatus, TurnRecord, VerdictRecord } from "./types";
 
 async function getJson<T>(url: string): Promise<T> {
   const res = await fetch(url, { cache: "no-store" });
@@ -23,6 +23,13 @@ export async function fetchTranscript(duelId: string): Promise<TurnRecord[]> {
     `/api/transcript?duel_id=${encodeURIComponent(duelId)}`,
   );
   return data.turns;
+}
+
+export async function fetchVerdict(duelId: string): Promise<VerdictRecord | null> {
+  const data = await getJson<{ duel_id: string; verdict: VerdictRecord | null }>(
+    `/api/verdict?duel_id=${encodeURIComponent(duelId)}`,
+  );
+  return data.verdict;
 }
 
 export async function startDuel(marketId: string): Promise<{ duel_id: string; market_id: string; started_at: string }> {
