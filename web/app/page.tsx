@@ -262,6 +262,8 @@ export default function Home() {
                 duelId={duelId}
                 duelComplete={duelComplete}
                 inlineVerdict={inlineVerdict}
+                bullOutcome={turns[0]?.bull_outcome ?? null}
+                bearOutcome={turns[0]?.bear_outcome ?? null}
               />
             )}
 

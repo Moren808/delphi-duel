@@ -18,6 +18,13 @@ interface Props {
    * If passed, no polling happens.
    */
   inlineVerdict?: VerdictRecord | null;
+  /**
+   * Multi-outcome head-to-head: outcome names for bull and bear.
+   * When both present, "BULL WINS" is replaced with the bull
+   * outcome name (e.g. "OKLAHOMA CITY THUNDER WINS"); same for bear.
+   */
+  bullOutcome?: string | null;
+  bearOutcome?: string | null;
 }
 
 const POSITION_BG: Record<string, string> = {
@@ -28,7 +35,13 @@ const POSITION_BG: Record<string, string> = {
   "strong NO": "bg-rose-500",
 };
 
-export function VerdictCard({ duelId, duelComplete, inlineVerdict }: Props) {
+export function VerdictCard({
+  duelId,
+  duelComplete,
+  inlineVerdict,
+  bullOutcome,
+  bearOutcome,
+}: Props) {
   const [verdict, setVerdict] = useState<VerdictRecord | null>(inlineVerdict ?? null);
   const [polling, setPolling] = useState<boolean>(!inlineVerdict && duelComplete);
 
@@ -97,10 +110,16 @@ export function VerdictCard({ duelId, duelComplete, inlineVerdict }: Props) {
     );
   }
 
+  // In outcome mode, the judge's "bull"/"bear" winner field maps to
+  // the outcome name those agents were defending. Otherwise show the
+  // role name as before.
+  const isOutcomeMode = Boolean(bullOutcome && bearOutcome);
   const winnerLabel =
     verdict.winner === "inconclusive"
       ? "INCONCLUSIVE"
-      : `${verdict.winner.toUpperCase()} WINS`;
+      : isOutcomeMode
+        ? `${(verdict.winner === "bull" ? bullOutcome! : bearOutcome!).toUpperCase()} WINS THE DEBATE`
+        : `${verdict.winner.toUpperCase()} WINS`;
   const positionBg = POSITION_BG[verdict.recommended_position] ?? "bg-stone-500";
 
   return (

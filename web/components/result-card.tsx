@@ -20,10 +20,23 @@ function computeVerdict(
   bullFinal: number,
   bearOpen: number,
   bearFinal: number,
+  bullOutcome: string | null,
+  bearOutcome: string | null,
 ): VerdictResult {
   const gap = Math.abs(bullFinal - bearFinal);
   const meanFinal = (bullFinal + bearFinal) / 2;
+  const isOutcomeMode = Boolean(bullOutcome && bearOutcome);
+
   if (gap < 0.15) {
+    if (isOutcomeMode) {
+      // In outcome mode the probabilities aren't mutually exclusive,
+      // so "lean YES/NO" framing doesn't apply. Just describe the
+      // shape of agreement.
+      return {
+        tone: "agree",
+        text: `${bullOutcome} (${bullFinal.toFixed(2)}) and ${bearOutcome} (${bearFinal.toFixed(2)}) ended close — gap ${gap.toFixed(2)}, neither outcome decisively prevails`,
+      };
+    }
     if (meanFinal < 0.4) {
       return {
         tone: "agree",
@@ -41,10 +54,21 @@ function computeVerdict(
       text: `agents converged near a coin flip (mean ${meanFinal.toFixed(2)}, gap ${gap.toFixed(2)})`,
     };
   }
-  // Roles are fixed: bull always argues YES, bear always argues NO.
-  // Reporting "bull holds NO" is a category error even when bullFinal
-  // drops below 0.5 — that just means bull's YES case weakened, not
-  // that bull switched sides.
+
+  if (isOutcomeMode) {
+    // Whichever side ended with higher probability for THEIR outcome
+    // made the more compelling case — by their own admission.
+    const winner =
+      bullFinal > bearFinal
+        ? `${bullOutcome} holds at ${bullFinal.toFixed(2)} — stronger case than ${bearOutcome} (${bearFinal.toFixed(2)})`
+        : `${bearOutcome} holds at ${bearFinal.toFixed(2)} — stronger case than ${bullOutcome} (${bullFinal.toFixed(2)})`;
+    return { tone: "disagree", text: `agents disagree — ${winner} (gap ${gap.toFixed(2)})` };
+  }
+
+  // Roles are fixed in binary mode: bull always argues YES, bear always
+  // argues NO. Reporting "bull holds NO" is a category error even when
+  // bullFinal drops below 0.5 — that just means bull's YES case
+  // weakened, not that bull switched sides.
   return {
     tone: "disagree",
     text: `agents disagree — bull holds YES at ${bullFinal.toFixed(2)}, bear holds NO at ${bearFinal.toFixed(2)} (gap ${gap.toFixed(2)})`,
@@ -65,6 +89,15 @@ export function ResultCard({ turns, marketQuestion, marketId }: Props) {
   const bearOpen = bearTurns[0]?.probability;
   const bearFinal = bearTurns[bearTurns.length - 1]?.probability;
 
+  // Outcome-mode metadata is stamped on every turn — pull from the
+  // first turn (it never changes within a duel).
+  const firstTurn = turns[0];
+  const bullOutcomeName = firstTurn?.bull_outcome ?? null;
+  const bearOutcomeName = firstTurn?.bear_outcome ?? null;
+  const isOutcomeMode = Boolean(bullOutcomeName && bearOutcomeName);
+  const bullLabel = bullOutcomeName ?? "bull";
+  const bearLabel = bearOutcomeName ?? "bear";
+
   if (
     bullOpen == null ||
     bullFinal == null ||
@@ -83,7 +116,14 @@ export function ResultCard({ turns, marketQuestion, marketId }: Props) {
         ? "bear"
         : null;
   const gap = bullFinal - bearFinal;
-  const verdict = computeVerdict(bullOpen, bullFinal, bearOpen, bearFinal);
+  const verdict = computeVerdict(
+    bullOpen,
+    bullFinal,
+    bearOpen,
+    bearFinal,
+    bullOutcomeName,
+    bearOutcomeName,
+  );
 
   return (
     <motion.section
@@ -104,12 +144,14 @@ export function ResultCard({ turns, marketQuestion, marketId }: Props) {
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <RoleSummary
           role="bull"
+          label={bullLabel}
           open={bullOpen}
           final={bullFinal}
           moveLabel={moveLabel(bullOpen, bullFinal)}
         />
         <RoleSummary
           role="bear"
+          label={bearLabel}
           open={bearOpen}
           final={bearFinal}
           moveLabel={moveLabel(bearOpen, bearFinal)}
@@ -125,8 +167,8 @@ export function ResultCard({ turns, marketQuestion, marketId }: Props) {
             {biggerMover == null
               ? "tied"
               : biggerMover === "bull"
-                ? `bull (+${Math.abs(bullMove).toFixed(3)})`
-                : `bear (${moveLabel(bearOpen, bearFinal)})`}
+                ? `${bullLabel} (+${Math.abs(bullMove).toFixed(3)})`
+                : `${bearLabel} (${moveLabel(bearOpen, bearFinal)})`}
           </p>
         </div>
         <div>
@@ -135,7 +177,9 @@ export function ResultCard({ turns, marketQuestion, marketId }: Props) {
           </p>
           <p className="mt-1 font-mono text-base font-semibold tabular-nums text-ink dark:text-stone-100">
             {gap.toFixed(3)}{" "}
-            <span className="text-ink-muted dark:text-stone-400">(bull − bear)</span>
+            <span className="text-ink-muted dark:text-stone-400">
+              ({bullLabel} − {bearLabel})
+            </span>
           </p>
         </div>
         <div>
@@ -143,7 +187,7 @@ export function ResultCard({ turns, marketQuestion, marketId }: Props) {
             rounds
           </p>
           <p className="mt-1 font-mono text-base font-semibold text-ink dark:text-stone-100">
-            {turns.length} ({bullTurns.length} bull, {bearTurns.length} bear)
+            {turns.length} ({bullTurns.length} {bullLabel}, {bearTurns.length} {bearLabel})
           </p>
         </div>
       </div>
@@ -157,12 +201,14 @@ export function ResultCard({ turns, marketQuestion, marketId }: Props) {
 
 interface RoleSummaryProps {
   role: "bull" | "bear";
+  /** Outcome name for multi-outcome markets; "bull"/"bear" otherwise. */
+  label: string;
   open: number;
   final: number;
   moveLabel: string;
 }
 
-function RoleSummary({ role, open, final, moveLabel }: RoleSummaryProps) {
+function RoleSummary({ role, label, open, final, moveLabel }: RoleSummaryProps) {
   const isBull = role === "bull";
   const Icon = isBull ? TrendingUp : TrendingDown;
   const accent = isBull
@@ -177,7 +223,7 @@ function RoleSummary({ role, open, final, moveLabel }: RoleSummaryProps) {
       <div className="mb-4 flex items-center gap-2">
         <Icon className={`h-5 w-5 ${accent}`} strokeWidth={2.5} />
         <span className={`font-mono text-sm font-semibold uppercase tracking-wider ${accent}`}>
-          {role}
+          {label}
         </span>
       </div>
       <div className="grid grid-cols-3 gap-3 font-mono text-base tabular-nums">
