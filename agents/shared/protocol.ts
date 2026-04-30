@@ -49,3 +49,57 @@ export type TurnRecord = z.infer<typeof TurnRecordSchema>;
 export type AgentRole = "bull" | "bear";
 export const peerRole = (role: AgentRole): AgentRole =>
   role === "bull" ? "bear" : "bull";
+
+/* ────────────────────────────  Phase 9: judge  ──────────────────────────── */
+
+/** What the judge LLM emits — the strict-JSON output of the verdict prompt. */
+export const VerdictPayloadSchema = z.object({
+  winner: z.enum(["bull", "bear", "inconclusive"]),
+  confidence: z.number().min(0).max(1),
+  /** 2–3 sentences of judging reasoning, shown to the trader. */
+  reasoning: z.string().min(1),
+  /** Plain-English directional read. */
+  suggested_lean: z.enum(["lean YES", "lean NO", "too close to call"]),
+  /** Trade-sizing recommendation. */
+  recommended_position: z.enum([
+    "strong YES",
+    "moderate YES",
+    "neutral",
+    "moderate NO",
+    "strong NO",
+  ]),
+});
+export type VerdictPayload = z.infer<typeof VerdictPayloadSchema>;
+
+/** Full verdict record — persisted to SQLite, sent over AXL from judge → coordinator. */
+export const VerdictRecordSchema = VerdictPayloadSchema.extend({
+  duel_id: z.string().min(1),
+  market_id: z.string().min(1),
+  /** ISO 8601. */
+  produced_at: z.string(),
+});
+export type VerdictRecord = z.infer<typeof VerdictRecordSchema>;
+
+/**
+ * Coordinator → judge envelope: a single message that ships the entire
+ * complete duel transcript so the judge can read both sides at once.
+ */
+export const DuelTranscriptSchema = z.object({
+  type: z.literal("duel_transcript"),
+  duel_id: z.string().min(1),
+  market_id: z.string().min(1),
+  market_question: z.string().min(1),
+  /** All turns, ordered by round. */
+  turns: z.array(TurnRecordSchema).min(1),
+});
+export type DuelTranscript = z.infer<typeof DuelTranscriptSchema>;
+
+/**
+ * Judge → coordinator envelope: thin wrapper around VerdictRecord with a
+ * `type` discriminant so the coordinator can multiplex if needed.
+ */
+export const DuelVerdictSchema = z.object({
+  type: z.literal("duel_verdict"),
+  verdict: VerdictRecordSchema,
+});
+export type DuelVerdict = z.infer<typeof DuelVerdictSchema>;
