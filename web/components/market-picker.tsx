@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Play, Loader2 } from "lucide-react";
 import { DEMO_MARKETS } from "@/lib/markets";
 import { cn } from "@/lib/cn";
+import type { DemoMarket } from "@/lib/types";
 
 interface MarketPickerProps {
   onStart: (marketId: string) => Promise<void>;
@@ -15,6 +16,40 @@ interface MarketPickerProps {
 }
 
 const CUSTOM_VALUE = "__custom__";
+
+// Filter pills shown above the dropdown. The `cats` array maps a
+// user-facing label onto one or more underlying Delphi categories
+// (e.g. "AI/Tech" surfaces our culture-tagged gaming markets, which
+// are the closest thing Delphi catalogues for that frame).
+const PILLS: Array<{ label: string; cats: string[] }> = [
+  { label: "All", cats: [] },
+  { label: "Crypto", cats: ["crypto"] },
+  { label: "Sports", cats: ["sports"] },
+  { label: "AI/Tech", cats: ["culture"] },
+  { label: "Politics", cats: ["politics"] },
+  { label: "Misc", cats: ["miscellaneous"] },
+];
+
+// Order categories appear inside the dropdown's optgroups.
+const CATEGORY_ORDER = ["crypto", "sports", "politics", "culture", "miscellaneous"];
+
+function groupByCategory(markets: DemoMarket[]): Map<string, DemoMarket[]> {
+  const groups = new Map<string, DemoMarket[]>();
+  for (const m of markets) {
+    const cat = m.category ?? "uncategorised";
+    if (!groups.has(cat)) groups.set(cat, []);
+    groups.get(cat)!.push(m);
+  }
+  // Re-key in CATEGORY_ORDER, then append any unknown buckets.
+  const ordered = new Map<string, DemoMarket[]>();
+  for (const cat of CATEGORY_ORDER) {
+    if (groups.has(cat)) ordered.set(cat, groups.get(cat)!);
+  }
+  for (const [cat, list] of groups) {
+    if (!ordered.has(cat)) ordered.set(cat, list);
+  }
+  return ordered;
+}
 
 export function MarketPicker({
   onStart,
@@ -29,6 +64,31 @@ export function MarketPicker({
       : DEMO_MARKETS[0]?.id ?? "";
   const [selected, setSelected] = useState<string>(initial);
   const [custom, setCustom] = useState<string>(initialMarketId && !DEMO_MARKETS.some((m) => m.id === initialMarketId) ? initialMarketId : "");
+  const [activePill, setActivePill] = useState<string>("All");
+
+  // Apply the active pill filter to the master list, then group by
+  // category for optgroup rendering. Selecting "All" returns everything.
+  const filteredGroups = useMemo(() => {
+    const pill = PILLS.find((p) => p.label === activePill);
+    const filtered =
+      !pill || pill.cats.length === 0
+        ? DEMO_MARKETS
+        : DEMO_MARKETS.filter((m) => pill.cats.includes(m.category ?? ""));
+    return groupByCategory(filtered);
+  }, [activePill]);
+
+  const flatFiltered = useMemo(
+    () => Array.from(filteredGroups.values()).flat(),
+    [filteredGroups],
+  );
+
+  // If the current selection isn't visible under the active pill,
+  // snap to the first market in the filtered list.
+  useEffect(() => {
+    if (selected === CUSTOM_VALUE) return;
+    const visible = flatFiltered.some((m) => m.id === selected);
+    if (!visible && flatFiltered.length > 0) setSelected(flatFiltered[0].id);
+  }, [activePill, flatFiltered, selected]);
 
   const isCustom = selected === CUSTOM_VALUE;
   const marketId = isCustom ? custom.trim() : selected;
@@ -56,6 +116,30 @@ export function MarketPicker({
         </span>
       </div>
 
+      {/* Filter pills: clicking narrows the dropdown to one category. */}
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        {PILLS.map((pill) => {
+          const active = pill.label === activePill;
+          return (
+            <button
+              key={pill.label}
+              type="button"
+              onClick={() => setActivePill(pill.label)}
+              disabled={disabled || starting}
+              className={cn(
+                "rounded-full border-2 px-4 py-1.5 font-mono text-sm font-medium transition",
+                active
+                  ? "border-ink bg-ink text-cream dark:border-stone-100 dark:bg-stone-100 dark:text-stone-950"
+                  : "border-ink/40 bg-transparent text-ink hover:border-ink hover:bg-ink/5 dark:border-stone-100/40 dark:text-stone-100 dark:hover:border-stone-100 dark:hover:bg-stone-100/10",
+                "disabled:cursor-not-allowed disabled:opacity-50",
+              )}
+            >
+              {pill.label}
+            </button>
+          );
+        })}
+      </div>
+
       <div className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_auto]">
         <div className="space-y-2">
           <select
@@ -70,10 +154,14 @@ export function MarketPicker({
               "dark:border-stone-100 dark:bg-stone-950 dark:text-stone-100 dark:focus:ring-stone-100",
             )}
           >
-            {DEMO_MARKETS.map((m) => (
-              <option key={m.id} value={m.id}>
-                [{m.category}] {m.question ?? m.id}
-              </option>
+            {Array.from(filteredGroups.entries()).map(([cat, markets]) => (
+              <optgroup key={cat} label={cat.charAt(0).toUpperCase() + cat.slice(1)}>
+                {markets.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.question ?? m.id}
+                  </option>
+                ))}
+              </optgroup>
             ))}
             <option value={CUSTOM_VALUE}>— paste market ID manually —</option>
           </select>
