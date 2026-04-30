@@ -41,36 +41,93 @@ interface BuildUserPromptArgs {
   round: number;
   peerLastMessage: string | null;
   selfLastMessage: string | null;
+  /**
+   * Multi-outcome head-to-head: bull's outcome name. Required for the
+   * outcome-mode framing; if absent, falls back to the original binary
+   * (or champion-vs-rest) framing.
+   */
+  bull_outcome?: string | null;
+  /** Multi-outcome head-to-head: bear's outcome name. */
+  bear_outcome?: string | null;
 }
 
 function buildUserPrompt(args: BuildUserPromptArgs): string {
-  const { role, market, champion_outcome_idx, round, peerLastMessage, selfLastMessage } = args;
+  const {
+    role,
+    market,
+    champion_outcome_idx,
+    round,
+    peerLastMessage,
+    selfLastMessage,
+    bull_outcome,
+    bear_outcome,
+  } = args;
 
-  const champion = market.outcomes[champion_outcome_idx] ?? "(unknown outcome)";
   const isBinary = market.outcomes.length === 2;
-  const championProb = market.implied_probabilities[champion_outcome_idx] ?? 1 / market.outcomes.length;
+  // Outcome mode kicks in only when BOTH outcome names are supplied
+  // AND they're distinct. Otherwise we fall back to the legacy
+  // champion-outcome-vs-rest framing for back-compat with binary
+  // markets and older callers.
+  const outcomeMode =
+    !isBinary &&
+    !!bull_outcome &&
+    !!bear_outcome &&
+    bull_outcome !== bear_outcome;
 
-  const outcomesLine = isBinary
-    ? market.outcomes.join(" / ")
-    : market.outcomes
-        .map((o, i) =>
-          i === champion_outcome_idx ? `${o} (champion)` : o,
-        )
-        .join(" / ");
+  // Convenience lookup: probability for any outcome name.
+  const probOf = (name: string): number => {
+    const i = market.outcomes.indexOf(name);
+    return i >= 0
+      ? market.implied_probabilities[i] ?? 0
+      : 1 / market.outcomes.length;
+  };
 
   const lines: string[] = [];
   lines.push("MARKET");
   lines.push(market.prompt);
   lines.push("");
-  lines.push(`Outcomes: ${outcomesLine}`);
-  if (!isBinary) {
+
+  if (outcomeMode) {
+    // Head-to-head outcome mode. Each agent argues for a specific
+    // outcome. Importantly: their probabilities are NOT mutually
+    // exclusive — other outcomes can absorb mass. Both agents could
+    // honestly hold P=0.30 if they're championing different outcomes
+    // out of many.
+    const myOutcome = role === "bull" ? bull_outcome! : bear_outcome!;
+    const opponentOutcome = role === "bull" ? bear_outcome! : bull_outcome!;
+    const myProb = probOf(myOutcome);
+    const opponentProb = probOf(opponentOutcome);
+    lines.push(`Outcomes (${market.outcomes.length} total): ${market.outcomes.join(" / ")}`);
     lines.push(
-      `Champion outcome (treat as YES): "${champion}". All other outcomes count as NO.`,
+      `OUTCOME MODE — head-to-head debate (you are ${role === "bull" ? "Bull" : "Bear"}):`,
+    );
+    lines.push(`  YOU argue: "${myOutcome}" wins this market.`);
+    lines.push(`  OPPONENT argues: "${opponentOutcome}" wins this market.`);
+    lines.push(
+      `  Your "probability" field = P("${myOutcome}" wins). Note: other outcomes exist, so your probability + opponent's probability can be < 1.`,
+    );
+    lines.push(`Market-implied P("${myOutcome}"): ${myProb.toFixed(3)}`);
+    lines.push(`Market-implied P("${opponentOutcome}"): ${opponentProb.toFixed(3)}`);
+  } else {
+    // Legacy binary / champion-vs-rest mode. Unchanged from before.
+    const champion = market.outcomes[champion_outcome_idx] ?? "(unknown outcome)";
+    const championProb =
+      market.implied_probabilities[champion_outcome_idx] ?? 1 / market.outcomes.length;
+    const outcomesLine = isBinary
+      ? market.outcomes.join(" / ")
+      : market.outcomes
+          .map((o, i) => (i === champion_outcome_idx ? `${o} (champion)` : o))
+          .join(" / ");
+    lines.push(`Outcomes: ${outcomesLine}`);
+    if (!isBinary) {
+      lines.push(
+        `Champion outcome (treat as YES): "${champion}". All other outcomes count as NO.`,
+      );
+    }
+    lines.push(
+      `Market-implied P(${isBinary ? "YES" : "champion"}): ${championProb.toFixed(3)}`,
     );
   }
-  lines.push(
-    `Market-implied P(${isBinary ? "YES" : "champion"}): ${championProb.toFixed(3)}`,
-  );
   // Anchor the agent in time: today's date + days to resolution. Prevents
   // the model from guessing the time-to-close from training-time priors
   // (which produced "5+ months" / "16-month window" mistakes in Phase 5
@@ -196,6 +253,10 @@ export interface RunTurnArgs {
   selfLastMessage?: string | null;
   /** Whether this turn is the producer's last. Bookkeeping; the LLM never sees it. */
   is_final: boolean;
+  /** Multi-outcome head-to-head: bull's outcome name. */
+  bull_outcome?: string | null;
+  /** Multi-outcome head-to-head: bear's outcome name. */
+  bear_outcome?: string | null;
 }
 
 export async function runTurn(args: RunTurnArgs): Promise<TurnRecord> {
@@ -208,6 +269,8 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnRecord> {
     round: args.round,
     peerLastMessage: args.peerLastMessage,
     selfLastMessage: args.selfLastMessage ?? null,
+    bull_outcome: args.bull_outcome ?? null,
+    bear_outcome: args.bear_outcome ?? null,
   });
 
   // First attempt.
@@ -237,5 +300,11 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnRecord> {
     champion_outcome_idx,
     is_final: args.is_final,
     produced_at: new Date().toISOString(),
+    // Stamped on every turn in outcome mode so the receiver, the
+    // judge, the storage layer, and the UI all know who's defending
+    // what without re-resolving from market_id.
+    ...(args.bull_outcome && args.bear_outcome
+      ? { bull_outcome: args.bull_outcome, bear_outcome: args.bear_outcome }
+      : {}),
   };
 }

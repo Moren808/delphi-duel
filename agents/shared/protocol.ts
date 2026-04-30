@@ -42,6 +42,15 @@ export const TurnRecordSchema = TurnPayloadSchema.extend({
   is_final: z.boolean(),
   /** ISO 8601 — when the turn was produced. */
   produced_at: z.string(),
+  /**
+   * Multi-outcome head-to-head: name of the outcome bull is defending.
+   * Both fields are present together (or both absent for binary markets).
+   * Stamped on every turn so the judge / UI can render outcome names
+   * without re-resolving from market_id.
+   */
+  bull_outcome: z.string().optional(),
+  /** Multi-outcome head-to-head: name of the outcome bear is defending. */
+  bear_outcome: z.string().optional(),
 });
 export type TurnRecord = z.infer<typeof TurnRecordSchema>;
 

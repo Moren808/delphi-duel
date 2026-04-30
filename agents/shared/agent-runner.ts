@@ -74,6 +74,14 @@ export interface RunAgentOptions {
   dbPath?: string;
   /** Champion outcome to defend (for multi-outcome markets). Default 0. */
   championOutcomeIdx?: number;
+  /**
+   * Multi-outcome head-to-head: bull and bear each defend a specific
+   * named outcome. When both are set the agents switch to outcome-mode
+   * framing in the user prompt. Read from env vars
+   * DELPHI_BULL_OUTCOME / DELPHI_BEAR_OUTCOME if not passed explicitly.
+   */
+  bullOutcome?: string;
+  bearOutcome?: string;
 }
 
 export async function runAgent(opts: RunAgentOptions): Promise<void> {
@@ -82,6 +90,8 @@ export async function runAgent(opts: RunAgentOptions): Promise<void> {
   const marketId = opts.marketId;
   const totalTurns = opts.totalTurns ?? Number(process.env.DELPHI_DUEL_TURNS ?? 4);
   const championIdx = opts.championOutcomeIdx ?? 0;
+  const bullOutcome = opts.bullOutcome ?? process.env.DELPHI_BULL_OUTCOME ?? null;
+  const bearOutcome = opts.bearOutcome ?? process.env.DELPHI_BEAR_OUTCOME ?? null;
   const ourApiPort = API_PORTS[role];
 
   const peerKeys = loadPeerKeys();
@@ -123,7 +133,10 @@ export async function runAgent(opts: RunAgentOptions): Promise<void> {
     return;
   }
   console.error(
-    `[${role}] starting duel: totalTurns=${totalTurns}, myMaxTurns=${myMaxTurns}, market=${marketId}`,
+    `[${role}] starting duel: totalTurns=${totalTurns}, myMaxTurns=${myMaxTurns}, market=${marketId}` +
+      (bullOutcome && bearOutcome
+        ? `, mode=outcome (bull="${bullOutcome}" vs bear="${bearOutcome}")`
+        : `, mode=binary`),
   );
 
   const market = await fetchMarket(marketId);
@@ -157,6 +170,8 @@ export async function runAgent(opts: RunAgentOptions): Promise<void> {
       round: 0,
       peerLastMessage: null,
       is_final: isFinal,
+      bull_outcome: bullOutcome,
+      bear_outcome: bearOutcome,
     });
     db.insertTurn(turn0);
     logTurn(role, turn0);
@@ -222,6 +237,8 @@ export async function runAgent(opts: RunAgentOptions): Promise<void> {
       peerLastMessage: peerTurn.message_to_peer,
       selfLastMessage: lastSelfMessage,
       is_final: myIsFinal,
+      bull_outcome: bullOutcome,
+      bear_outcome: bearOutcome,
     });
     db.insertTurn(myTurn);
     logTurn(role, myTurn);

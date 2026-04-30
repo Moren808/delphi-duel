@@ -35,10 +35,10 @@ CREATE TABLE IF NOT EXISTS turns (
   is_final         INTEGER NOT NULL DEFAULT 0,
   produced_at      TEXT    NOT NULL,
   inserted_at      TEXT    NOT NULL DEFAULT (datetime('now')),
+  bull_outcome     TEXT,
+  bear_outcome     TEXT,
   PRIMARY KEY (duel_id, round)
 );
-
-CREATE INDEX IF NOT EXISTS idx_turns_market ON turns(market_id, produced_at);
 
 CREATE TABLE IF NOT EXISTS verdicts (
   duel_id              TEXT    PRIMARY KEY,
@@ -59,11 +59,11 @@ const INSERT_SQL = `
 INSERT OR REPLACE INTO turns (
   duel_id, round, role, market_id, champion_outcome_idx,
   probability, confidence, reasoning, message_to_peer,
-  is_final, produced_at
+  is_final, produced_at, bull_outcome, bear_outcome
 ) VALUES (
   @duel_id, @round, @role, @market_id, @champion_outcome_idx,
   @probability, @confidence, @reasoning, @message_to_peer,
-  @is_final, @produced_at
+  @is_final, @produced_at, @bull_outcome, @bear_outcome
 )
 `;
 
@@ -92,6 +92,18 @@ export function openDb(dbPath: string = DEFAULT_DB_PATH): DuelDb {
   db.pragma("synchronous = NORMAL");
   db.exec(SCHEMA);
 
+  // Migration: pre-Phase 11 databases were created without the
+  // bull_outcome / bear_outcome columns. ALTER TABLE in SQLite errors
+  // out if the column already exists, so we swallow that specific error.
+  for (const col of ["bull_outcome", "bear_outcome"]) {
+    try {
+      db.exec(`ALTER TABLE turns ADD COLUMN ${col} TEXT`);
+    } catch (err) {
+      const msg = (err as Error).message ?? "";
+      if (!msg.includes("duplicate column")) throw err;
+    }
+  }
+
   const insertStmt = db.prepare(INSERT_SQL);
   const listStmt = db.prepare(
     "SELECT * FROM turns WHERE duel_id = ? ORDER BY round ASC",
@@ -116,6 +128,8 @@ export function openDb(dbPath: string = DEFAULT_DB_PATH): DuelDb {
         message_to_peer: t.message_to_peer,
         is_final: t.is_final ? 1 : 0,
         produced_at: t.produced_at,
+        bull_outcome: t.bull_outcome ?? null,
+        bear_outcome: t.bear_outcome ?? null,
       });
     },
     listTurns(duelId: string): TurnRecord[] {
@@ -168,6 +182,8 @@ function rowToVerdict(r: Record<string, unknown>): VerdictRecord {
 }
 
 function rowToTurn(r: Record<string, unknown>): TurnRecord {
+  const bull_outcome = r.bull_outcome as string | null | undefined;
+  const bear_outcome = r.bear_outcome as string | null | undefined;
   return {
     duel_id: r.duel_id as string,
     round: r.round as number,
@@ -180,5 +196,7 @@ function rowToTurn(r: Record<string, unknown>): TurnRecord {
     message_to_peer: r.message_to_peer as string,
     is_final: Boolean(r.is_final),
     produced_at: r.produced_at as string,
+    ...(bull_outcome ? { bull_outcome } : {}),
+    ...(bear_outcome ? { bear_outcome } : {}),
   };
 }
