@@ -32,11 +32,17 @@ export async function fetchVerdict(duelId: string): Promise<VerdictRecord | null
   return data.verdict;
 }
 
-export async function startDuel(marketId: string): Promise<{ duel_id: string; market_id: string; started_at: string }> {
+export async function startDuel(
+  marketId: string,
+  extras?: { bull_outcome?: string; bear_outcome?: string },
+): Promise<{ duel_id: string; market_id: string; started_at: string }> {
+  const body: Record<string, unknown> = { market_id: marketId };
+  if (extras?.bull_outcome) body.bull_outcome = extras.bull_outcome;
+  if (extras?.bear_outcome) body.bear_outcome = extras.bear_outcome;
   const res = await fetch("/api/start-duel", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ market_id: marketId }),
+    body: JSON.stringify(body),
   });
   const json = (await res.json().catch(() => ({}))) as Record<string, unknown>;
   if (!res.ok) {

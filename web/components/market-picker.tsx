@@ -6,8 +6,19 @@ import { DEMO_MARKETS } from "@/lib/markets";
 import { cn } from "@/lib/cn";
 import type { DemoMarket } from "@/lib/types";
 
+/** Lightweight shape of /api/market/:id response — only the fields we use. */
+interface LiveMarket {
+  id: string;
+  market_type: "binary" | "multi_outcome";
+  outcomes_list: Array<{ name: string; probability: number }>;
+}
+
 interface MarketPickerProps {
-  onStart: (marketId: string) => Promise<void>;
+  /** Multi-outcome markets pass bull_outcome / bear_outcome along; binary markets omit. */
+  onStart: (
+    marketId: string,
+    extras?: { bull_outcome?: string; bear_outcome?: string },
+  ) => Promise<void>;
   /** Fires whenever the dropdown selection or custom-id changes. */
   onSelectionChange?: (marketId: string) => void;
   disabled?: boolean;
@@ -51,6 +62,10 @@ function groupByCategory(markets: DemoMarket[]): Map<string, DemoMarket[]> {
   return ordered;
 }
 
+function fmtPct(p: number): string {
+  return `${(p * 100).toFixed(1)}%`;
+}
+
 export function MarketPicker({
   onStart,
   onSelectionChange,
@@ -65,6 +80,15 @@ export function MarketPicker({
   const [selected, setSelected] = useState<string>(initial);
   const [custom, setCustom] = useState<string>(initialMarketId && !DEMO_MARKETS.some((m) => m.id === initialMarketId) ? initialMarketId : "");
   const [activePill, setActivePill] = useState<string>("All");
+
+  // Live market metadata — fetched whenever the active marketId changes.
+  // Used to detect binary vs multi-outcome and to render the outcomes
+  // dropdowns with their implied probabilities.
+  const [liveMarket, setLiveMarket] = useState<LiveMarket | null>(null);
+  // User's outcome picks for multi-outcome markets. Defaults are seeded
+  // when liveMarket lands (top probability for bull, second for bear).
+  const [bullOutcome, setBullOutcome] = useState<string>("");
+  const [bearOutcome, setBearOutcome] = useState<string>("");
 
   // Apply the active pill filter to the master list, then group by
   // category for optgroup rendering. Selecting "All" returns everything.
@@ -100,10 +124,59 @@ export function MarketPicker({
     if (marketId.length > 0) onSelectionChange?.(marketId);
   }, [marketId, onSelectionChange]);
 
+  // Fetch live market shape when the selection changes. On failure
+  // (no API key in demo mode, etc.) we keep liveMarket null and the
+  // outcome picker simply doesn't render — binary markets don't need
+  // it anyway, and demo deployments mostly preview binary markets.
+  useEffect(() => {
+    if (!marketId || marketId.length < 4) {
+      setLiveMarket(null);
+      return;
+    }
+    let cancelled = false;
+    fetch(`/api/market/${marketId}`, { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: { market?: LiveMarket } | null) => {
+        if (cancelled) return;
+        const m = data?.market ?? null;
+        setLiveMarket(m);
+        // Seed defaults: top probability → bull, second → bear.
+        if (m && m.market_type === "multi_outcome" && m.outcomes_list?.length >= 2) {
+          const sorted = [...m.outcomes_list].sort(
+            (a, b) => b.probability - a.probability,
+          );
+          setBullOutcome(sorted[0].name);
+          setBearOutcome(sorted[1].name);
+        } else {
+          setBullOutcome("");
+          setBearOutcome("");
+        }
+      })
+      .catch(() => {
+        /* silent — picker still works for binary markets */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [marketId]);
+
+  const isMulti = liveMarket?.market_type === "multi_outcome";
+
   const handleStart = async () => {
     if (!canStart) return;
-    await onStart(marketId);
+    if (isMulti && bullOutcome && bearOutcome) {
+      if (bullOutcome === bearOutcome) {
+        // No-op — buttons should be guarded but be defensive.
+        return;
+      }
+      await onStart(marketId, { bull_outcome: bullOutcome, bear_outcome: bearOutcome });
+    } else {
+      await onStart(marketId);
+    }
   };
+
+  const startDisabled =
+    !canStart || (isMulti && (!bullOutcome || !bearOutcome || bullOutcome === bearOutcome));
 
   return (
     <section className="rounded-2xl border border-ink bg-white p-6 dark:border-stone-100 dark:bg-stone-900">
@@ -193,7 +266,7 @@ export function MarketPicker({
         <button
           type="button"
           onClick={handleStart}
-          disabled={!canStart}
+          disabled={startDisabled}
           className={cn(
             "inline-flex h-12 items-center justify-center gap-2 self-start rounded-xl px-6",
             "border-2 border-emerald-500 bg-emerald-500 text-base font-semibold text-white transition",
@@ -215,6 +288,71 @@ export function MarketPicker({
           )}
         </button>
       </div>
+
+      {/* Multi-outcome only — pick two outcomes for head-to-head debate. */}
+      {isMulti && liveMarket && (
+        <div className="mt-4 grid grid-cols-1 items-end gap-3 md:grid-cols-[1fr_auto_1fr]">
+          <div>
+            <label className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+              Bull argues
+            </label>
+            <select
+              value={bullOutcome}
+              onChange={(e) => setBullOutcome(e.target.value)}
+              disabled={disabled || starting}
+              className={cn(
+                "w-full rounded-xl border-2 border-emerald-500 bg-cream px-4 py-2.5",
+                "text-base text-ink",
+                "focus:outline-none focus:ring-2 focus:ring-emerald-500",
+                "disabled:cursor-not-allowed disabled:opacity-50",
+                "dark:bg-stone-950 dark:text-stone-100",
+              )}
+            >
+              {liveMarket.outcomes_list.map((o) => (
+                <option key={o.name} value={o.name} disabled={o.name === bearOutcome}>
+                  {o.name} ({fmtPct(o.probability)})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="self-center pb-1 text-center">
+            <span className="font-mono text-base font-bold tracking-widest text-ink dark:text-stone-100">
+              VS
+            </span>
+          </div>
+
+          <div>
+            <label className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-rose-600 dark:text-rose-400">
+              Bear argues
+            </label>
+            <select
+              value={bearOutcome}
+              onChange={(e) => setBearOutcome(e.target.value)}
+              disabled={disabled || starting}
+              className={cn(
+                "w-full rounded-xl border-2 border-rose-500 bg-cream px-4 py-2.5",
+                "text-base text-ink",
+                "focus:outline-none focus:ring-2 focus:ring-rose-500",
+                "disabled:cursor-not-allowed disabled:opacity-50",
+                "dark:bg-stone-950 dark:text-stone-100",
+              )}
+            >
+              {liveMarket.outcomes_list.map((o) => (
+                <option key={o.name} value={o.name} disabled={o.name === bullOutcome}>
+                  {o.name} ({fmtPct(o.probability)})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {bullOutcome && bullOutcome === bearOutcome && (
+            <p className="md:col-span-3 font-mono text-xs text-rose-600 dark:text-rose-400">
+              pick two different outcomes
+            </p>
+          )}
+        </div>
+      )}
     </section>
   );
 }

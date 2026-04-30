@@ -130,7 +130,10 @@ export default function Home() {
   }, [duelId, viewingExample]);
 
   const handleStart = useCallback(
-    async (selectedMarketId: string) => {
+    async (
+      selectedMarketId: string,
+      extras?: { bull_outcome?: string; bear_outcome?: string },
+    ) => {
       if (starting) return;
       setStarting(true);
       setError(null);
@@ -139,7 +142,7 @@ export default function Home() {
       setTitleOverride(null);
       setInlineVerdict(null);
       try {
-        const r = await startDuel(selectedMarketId);
+        const r = await startDuel(selectedMarketId, extras);
         setDuelId(r.duel_id);
         setMarketId(r.market_id);
         setDuelLive(true);

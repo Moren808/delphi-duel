@@ -20,6 +20,10 @@ export interface TurnRecord {
   message_to_peer: string;
   is_final: boolean;
   produced_at: string;
+  /** Multi-outcome only — name of the outcome bull is championing. */
+  bull_outcome?: string;
+  /** Multi-outcome only — name of the outcome bear is championing. */
+  bear_outcome?: string;
 }
 
 export interface MeshStatus {
