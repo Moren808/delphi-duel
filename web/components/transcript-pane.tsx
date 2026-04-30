@@ -73,9 +73,15 @@ function TurnRow({ turn, isLatest }: { turn: TurnRecord; isLatest: boolean }) {
   const accent = isBull
     ? "text-emerald-600 dark:text-emerald-400"
     : "text-rose-600 dark:text-rose-400";
+  const cardBorder = isBull
+    ? "border-emerald-500/40"
+    : "border-rose-500/40";
   const ringColor = isBull
     ? "ring-emerald-500/60"
     : "ring-rose-500/60";
+  const finalChip = isBull
+    ? "border-emerald-500 text-emerald-600 dark:text-emerald-400"
+    : "border-rose-500 text-rose-600 dark:text-rose-400";
 
   return (
     <motion.li
@@ -84,7 +90,8 @@ function TurnRow({ turn, isLatest }: { turn: TurnRecord; isLatest: boolean }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
       className={cn(
-        "flex items-start gap-4 rounded-xl border border-ink/15 bg-cream p-5 dark:border-stone-100/15 dark:bg-stone-950",
+        "flex items-start gap-4 rounded-xl border-2 bg-cream p-5 dark:bg-stone-950",
+        cardBorder,
         isLatest && cn("ring-2", ringColor),
       )}
     >
@@ -101,7 +108,10 @@ function TurnRow({ turn, isLatest }: { turn: TurnRecord; isLatest: boolean }) {
             P(YES) <span className={cn("font-semibold", accent)}>{turn.probability.toFixed(3)}</span>
           </span>
           {turn.is_final && (
-            <span className="rounded-full border border-emerald-500 px-2.5 py-0.5 font-mono text-[11px] uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+            <span className={cn(
+              "rounded-full border px-2.5 py-0.5 font-mono text-[11px] uppercase tracking-wider",
+              finalChip,
+            )}>
               final
             </span>
           )}
