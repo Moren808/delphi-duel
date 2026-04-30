@@ -1,6 +1,7 @@
 packages:
   - "agents/bull"
   - "agents/bear"
+  - "agents/judge"
   - "agents/shared"
   - "web"
   - "shared/sdk"

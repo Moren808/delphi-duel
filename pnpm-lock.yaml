@@ -102,6 +102,34 @@ importers:
         specifier: ^5.0.0
         version: 5.9.3
 
+  agents/judge:
+    dependencies:
+      '@anthropic-ai/sdk':
+        specifier: ^0.30.0
+        version: 0.30.1
+      '@delphi-duel/agents-shared':
+        specifier: workspace:*
+        version: link:../shared
+      '@delphi-duel/shared-types':
+        specifier: workspace:*
+        version: link:../../shared/types
+      dotenv:
+        specifier: ^16.0.0
+        version: 16.6.1
+      zod:
+        specifier: ^3.22.0
+        version: 3.25.76
+    devDependencies:
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.19.39
+      tsx:
+        specifier: ^4.0.0
+        version: 4.21.0
+      typescript:
+        specifier: ^5.0.0
+        version: 5.9.3
+
   agents/shared:
     dependencies:
       '@anthropic-ai/sdk':

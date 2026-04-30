@@ -24,6 +24,7 @@
     "axl:keys-show": "echo 'Bull:' && curl -s http://127.0.0.1:9002/topology | jq -r .our_public_key && echo 'Bear:' && curl -s http://127.0.0.1:9012/topology | jq -r .our_public_key",
     "dev:bull": "pnpm --filter @delphi-duel/bull dev",
     "dev:bear": "pnpm --filter @delphi-duel/bear dev",
+    "dev:judge": "pnpm --filter @delphi-duel/judge dev",
     "dev:web": "pnpm --filter @delphi-duel/web dev",
     "test:mesh": "tsx scripts/test-mesh.ts",
     "run-duel": "tsx scripts/run-duel.ts",
