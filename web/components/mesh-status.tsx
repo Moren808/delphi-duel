@@ -78,7 +78,7 @@ export function MeshStatusIndicator() {
           peered
         </span>
       )}
-      {error && <span className="text-[10px] text-rose-500">{error}</span>}
+      {error && <span className="text-[11px] text-rose-500">{error}</span>}
     </div>
   );
 }

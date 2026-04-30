@@ -61,12 +61,12 @@ export function AgentCard({ role, probability, round, thinking }: Props) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 4 }}
             transition={{ duration: 0.25 }}
-            className={`font-mono text-6xl font-bold tabular-nums tracking-tight ${accentText}`}
+            className={`font-mono text-7xl font-bold tabular-nums tracking-tight ${accentText}`}
           >
             {probLabel}
           </motion.span>
         </AnimatePresence>
-        <span className="font-mono text-xs uppercase tracking-wider text-ink-muted dark:text-stone-400">
+        <span className="font-mono text-xs font-semibold uppercase tracking-wider text-ink-muted dark:text-stone-400">
           P(YES)
         </span>
       </div>

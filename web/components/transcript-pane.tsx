@@ -101,7 +101,7 @@ function TurnRow({ turn, isLatest }: { turn: TurnRecord; isLatest: boolean }) {
             P(YES) <span className={cn("font-semibold", accent)}>{turn.probability.toFixed(3)}</span>
           </span>
           {turn.is_final && (
-            <span className="rounded-full border border-emerald-500 px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+            <span className="rounded-full border border-emerald-500 px-2.5 py-0.5 font-mono text-[11px] uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
               final
             </span>
           )}

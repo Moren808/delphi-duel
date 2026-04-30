@@ -4,8 +4,10 @@
 
 @layer base {
   html {
-    /* Base font scale bumped to match Delphi's roomy display. */
-    font-size: 17px;
+    /* Base font scale bumped further for the Delphi-style roomy display.
+       18px root = 14px → 0.78rem floor on small text, 18px body, larger
+       cards. All "text-xs" tokens come out at 13.5px. */
+    font-size: 18px;
     background: #f5f1e8;
   }
   html.dark {
