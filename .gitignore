@@ -17,6 +17,7 @@ axl/keys/
 # layouts or break checkouts on other machines.
 axl/node-config-1.json
 axl/node-config-2.json
+axl/node-config-3.json
 
 # AXL cloned repo and built binary
 axl/axl-repo/

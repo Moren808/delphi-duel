@@ -33,10 +33,11 @@ generate_if_missing() {
 
 generate_if_missing "bull" "$KEYS_DIR/bull.pem"
 generate_if_missing "bear" "$KEYS_DIR/bear.pem"
+generate_if_missing "judge" "$KEYS_DIR/judge.pem"
 
 echo ""
 echo "Keys present:"
-ls -l "$KEYS_DIR/bull.pem" "$KEYS_DIR/bear.pem"
+ls -l "$KEYS_DIR/bull.pem" "$KEYS_DIR/bear.pem" "$KEYS_DIR/judge.pem"
 
 # Write node configs with absolute key paths for the current machine.
 # These are gitignored — they vary by clone location.
@@ -60,5 +61,15 @@ cat > "$AXL_DIR/node-config-2.json" <<JSON
   "max_message_size": 16777216
 }
 JSON
+cat > "$AXL_DIR/node-config-3.json" <<JSON
+{
+  "PrivateKeyPath": "$KEYS_DIR/judge.pem",
+  "Listen": [],
+  "Peers": ["tls://127.0.0.1:9001"],
+  "api_port": 9022,
+  "max_message_size": 16777216
+}
+JSON
 echo "  $AXL_DIR/node-config-1.json"
 echo "  $AXL_DIR/node-config-2.json"
+echo "  $AXL_DIR/node-config-3.json"
