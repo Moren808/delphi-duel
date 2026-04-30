@@ -6,7 +6,7 @@ AXL_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 LOGS_DIR="$AXL_DIR/logs"
 
 stopped=0
-for pid_file in "$LOGS_DIR/node-1.pid" "$LOGS_DIR/node-2.pid"; do
+for pid_file in "$LOGS_DIR/node-1.pid" "$LOGS_DIR/node-2.pid" "$LOGS_DIR/node-3.pid"; do
   if [ -f "$pid_file" ]; then
     pid=$(cat "$pid_file")
     if kill "$pid" 2>/dev/null; then
