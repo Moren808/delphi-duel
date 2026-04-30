@@ -23,6 +23,8 @@ interface Row {
   message_to_peer: string;
   is_final: number;
   produced_at: string;
+  bull_outcome: string | null;
+  bear_outcome: string | null;
 }
 
 function dbPath(): string {
@@ -46,7 +48,7 @@ export async function GET(req: Request): Promise<Response> {
       .prepare(
         `SELECT duel_id, round, role, market_id, champion_outcome_idx,
                 probability, confidence, reasoning, message_to_peer,
-                is_final, produced_at
+                is_final, produced_at, bull_outcome, bear_outcome
          FROM turns WHERE duel_id = ? ORDER BY round ASC`,
       )
       .all(duelId) as Row[];
@@ -54,6 +56,10 @@ export async function GET(req: Request): Promise<Response> {
     const turns = rows.map((r) => ({
       ...r,
       is_final: Boolean(r.is_final),
+      // Strip null outcome fields so the client treats them as undefined
+      // (matches the optional-prop semantics on TurnRecord).
+      ...(r.bull_outcome ? { bull_outcome: r.bull_outcome } : { bull_outcome: undefined }),
+      ...(r.bear_outcome ? { bear_outcome: r.bear_outcome } : { bear_outcome: undefined }),
     }));
 
     return Response.json({ duel_id: duelId, turns });
