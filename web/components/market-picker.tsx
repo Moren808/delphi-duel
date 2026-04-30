@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Play, Loader2 } from "lucide-react";
 import { DEMO_MARKETS } from "@/lib/markets";
 import { cn } from "@/lib/cn";
 
 interface MarketPickerProps {
   onStart: (marketId: string) => Promise<void>;
+  /** Fires whenever the dropdown selection or custom-id changes. */
+  onSelectionChange?: (marketId: string) => void;
   disabled?: boolean;
   starting?: boolean;
   initialMarketId?: string;
@@ -16,6 +18,7 @@ const CUSTOM_VALUE = "__custom__";
 
 export function MarketPicker({
   onStart,
+  onSelectionChange,
   disabled = false,
   starting = false,
   initialMarketId,
@@ -30,6 +33,12 @@ export function MarketPicker({
   const isCustom = selected === CUSTOM_VALUE;
   const marketId = isCustom ? custom.trim() : selected;
   const canStart = !disabled && !starting && marketId.length > 0;
+
+  // Bubble selection changes up to the page so it can render context
+  // panels (e.g. MarketSummaryCard) keyed off the current selection.
+  useEffect(() => {
+    if (marketId.length > 0) onSelectionChange?.(marketId);
+  }, [marketId, onSelectionChange]);
 
   const handleStart = async () => {
     if (!canStart) return;

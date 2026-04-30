@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { History, Sparkles } from "lucide-react";
 import { Header } from "@/components/header";
 import { MarketPicker } from "@/components/market-picker";
+import { MarketSummaryCard } from "@/components/market-summary-card";
 import { AgentArena } from "@/components/agent-arena";
 import { TranscriptPane } from "@/components/transcript-pane";
 import { AxlLog } from "@/components/axl-log";
@@ -58,6 +59,10 @@ export default function Home() {
   const [viewingExample, setViewingExample] = useState(false);
   // Override for the title strip — fixture's market_question fallback.
   const [titleOverride, setTitleOverride] = useState<string | null>(null);
+  // The market currently selected in the picker dropdown — drives the
+  // MarketSummaryCard before any duel starts. Distinct from `marketId`,
+  // which only flips after Start Duel is clicked.
+  const [pendingMarketId, setPendingMarketId] = useState<string | null>(null);
 
   // Restore active duel on initial mount (page refresh during a duel).
   useEffect(() => {
@@ -184,10 +189,18 @@ export default function Home() {
 
         <MarketPicker
           onStart={handleStart}
+          onSelectionChange={setPendingMarketId}
           disabled={duelLive || DEMO_MODE}
           starting={starting}
           initialMarketId={marketId ?? undefined}
         />
+
+        {/* Show market context whenever something is selected and no
+            duel is in flight. Hides during live polling, an ongoing
+            example replay, or before the picker has settled. */}
+        {pendingMarketId && !duelLive && !viewingExample && turns.length === 0 && (
+          <MarketSummaryCard marketId={pendingMarketId} />
+        )}
 
         <button
           type="button"
