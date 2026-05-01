@@ -1,5 +1,5 @@
 {
-  "_comment": "10 curated open Delphi mainnet markets for run-duel and the web UI. Captured 2026-04-29. Mix of binary and multi-outcome, resolution dates spread May–Dec 2026.",
+  "_comment": "10 curated open Delphi mainnet markets for run-duel and the web UI. Captured 2026-04-29; re-verified 2026-05-01 — all 10 still open, all categories match the live SDK response. Mix of binary and multi-outcome, resolution dates spread May–Dec 2026.",
   "network": "mainnet",
   "markets": [
     {
