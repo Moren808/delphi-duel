@@ -110,15 +110,44 @@ function extractJsonObject(text: string): string {
   return s;
 }
 
+/** Hard timeout for a single Claude call. Sonnet's verdict prompt is small;
+ *  if a call hasn't returned in 30s, the network or the API is wedged and
+ *  retrying is preferable to hanging the daemon indefinitely. */
+const CLAUDE_TIMEOUT_MS = 30_000;
+
 async function callClaude(systemPrompt: string, userPrompt: string): Promise<string> {
   const client = getAnthropic();
-  const res = await client.messages.create({
-    model: MODEL,
-    max_tokens: MAX_TOKENS,
-    temperature: TEMPERATURE,
-    system: systemPrompt,
-    messages: [{ role: "user", content: userPrompt }],
-  });
+  const t0 = Date.now();
+  console.error(`[judge] calling Claude (model=${MODEL}, prompt=${userPrompt.length}b)…`);
+
+  // AbortController-backed timeout. The Anthropic SDK accepts a signal
+  // option; if it doesn't honor it we still race a setTimeout reject.
+  const ac = new AbortController();
+  const timeout = setTimeout(() => ac.abort(), CLAUDE_TIMEOUT_MS);
+
+  let res;
+  try {
+    res = await client.messages.create(
+      {
+        model: MODEL,
+        max_tokens: MAX_TOKENS,
+        temperature: TEMPERATURE,
+        system: systemPrompt,
+        messages: [{ role: "user", content: userPrompt }],
+      },
+      { signal: ac.signal, timeout: CLAUDE_TIMEOUT_MS },
+    );
+  } catch (err) {
+    clearTimeout(timeout);
+    const elapsed = Date.now() - t0;
+    const msg = (err as Error).message ?? String(err);
+    console.error(`[judge] Claude call FAILED after ${elapsed}ms: ${msg}`);
+    throw new Error(`Claude call failed (${elapsed}ms): ${msg}`);
+  }
+  clearTimeout(timeout);
+  const elapsed = Date.now() - t0;
+  console.error(`[judge] Claude returned in ${elapsed}ms (stop_reason=${res.stop_reason})`);
+
   const text = res.content
     .map((b) => (b.type === "text" ? b.text : ""))
     .join("")
@@ -129,14 +158,47 @@ async function callClaude(systemPrompt: string, userPrompt: string): Promise<str
   return text;
 }
 
-function tryParse(text: string): VerdictPayload | null {
+/** Truncate for log-friendly output without dropping the JSON-relevant tail. */
+function truncForLog(s: string, max = 800): string {
+  if (s.length <= max) return s;
+  return `${s.slice(0, max - 60)}…[+${s.length - max + 60} chars]`;
+}
+
+interface ParseResult {
+  ok: boolean;
+  payload?: VerdictPayload;
+  /** Reason for failure, when ok=false. Either a JSON parse error or a zod issue. */
+  error?: string;
+}
+
+function tryParse(text: string): ParseResult {
+  let candidate: string;
   try {
-    const parsed = JSON.parse(extractJsonObject(text));
-    const r = VerdictPayloadSchema.safeParse(parsed);
-    return r.success ? r.data : null;
-  } catch {
-    return null;
+    candidate = extractJsonObject(text);
+  } catch (err) {
+    return { ok: false, error: `extractJsonObject threw: ${(err as Error).message}` };
   }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(candidate);
+  } catch (err) {
+    return {
+      ok: false,
+      error: `JSON.parse threw: ${(err as Error).message}. Candidate (after fence-strip) was: ${truncForLog(candidate, 400)}`,
+    };
+  }
+
+  const r = VerdictPayloadSchema.safeParse(parsed);
+  if (!r.success) {
+    // Zod's flatten gives us a per-field breakdown that's much more
+    // useful than the raw error string when debugging schema drift.
+    return {
+      ok: false,
+      error: `zod validation failed: ${JSON.stringify(r.error.flatten())}`,
+    };
+  }
+  return { ok: true, payload: r.data };
 }
 
 async function judgeTranscript(t: DuelTranscript): Promise<VerdictPayload> {
@@ -144,19 +206,32 @@ async function judgeTranscript(t: DuelTranscript): Promise<VerdictPayload> {
   const userPrompt = buildUserPrompt(t);
 
   const text1 = await callClaude(systemPrompt, userPrompt);
-  let v = tryParse(text1);
-  if (!v) {
+  let r1 = tryParse(text1);
+  if (!r1.ok) {
+    // Surface the raw response and the specific failure reason so the
+    // operator can see what the model actually produced when zod or
+    // JSON.parse reject it. This is the "silent zod failure" hunt.
+    console.error(
+      `[judge] first-attempt parse FAILED: ${r1.error}\n[judge] raw Claude response (attempt 1):\n${truncForLog(text1, 1200)}`,
+    );
+
     const reminder =
       userPrompt +
-      '\n\n[reminder] Output ONLY the JSON verdict object. No markdown, no preamble.';
+      '\n\n[reminder] Output ONLY the JSON verdict object. No markdown, no preamble. ' +
+      'Required schema: {"winner":"bull"|"bear"|"inconclusive","confidence":number 0..1,"reasoning":"...","suggested_lean":"lean YES"|"lean NO"|"too close to call","recommended_position":"strong YES"|"moderate YES"|"neutral"|"moderate NO"|"strong NO"}';
     const text2 = await callClaude(systemPrompt, reminder);
-    v = tryParse(text2);
-    if (!v) {
+    const r2 = tryParse(text2);
+    if (!r2.ok) {
+      console.error(
+        `[judge] retry parse FAILED: ${r2.error}\n[judge] raw Claude response (attempt 2):\n${truncForLog(text2, 1200)}`,
+      );
       throw new Error(
-        `Failed to parse judge output as VerdictPayload after 2 tries. Last text:\n${text2}`,
+        `Failed to parse judge output as VerdictPayload after 2 attempts. Last error: ${r2.error}`,
       );
     }
+    r1 = r2;
   }
+  const v: VerdictPayload = r1.payload!;
   return v;
 }
 
@@ -403,7 +478,13 @@ export async function runJudge(opts: RunJudgeOptions = {}): Promise<void> {
     try {
       payload = await judgeTranscript(envelope);
     } catch (err) {
-      console.error(`[judge] FAIL: ${(err as Error).message}`);
+      const msg = (err as Error).message ?? String(err);
+      const stack = (err as Error).stack ?? "";
+      console.error(
+        `[judge] judgeTranscript FAILED for duel ${envelope.duel_id}: ${msg}`,
+      );
+      if (process.env.DEBUG) console.error(stack);
+      // Skip this duel but keep the daemon alive for future ones.
       continue;
     }
 

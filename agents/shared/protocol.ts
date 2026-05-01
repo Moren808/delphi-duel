@@ -47,10 +47,15 @@ export const TurnRecordSchema = TurnPayloadSchema.extend({
    * Both fields are present together (or both absent for binary markets).
    * Stamped on every turn so the judge / UI can render outcome names
    * without re-resolving from market_id.
+   *
+   * `.nullish()` accepts undefined OR null OR string — needed because
+   * SQLite round-trips fill empty cells with null, while the agent-
+   * runner's in-memory broadcast path omits the field entirely.
+   * Both should validate as "no outcome name set" (binary mode).
    */
-  bull_outcome: z.string().optional(),
+  bull_outcome: z.string().nullish(),
   /** Multi-outcome head-to-head: name of the outcome bear is defending. */
-  bear_outcome: z.string().optional(),
+  bear_outcome: z.string().nullish(),
 });
 export type TurnRecord = z.infer<typeof TurnRecordSchema>;
 
