@@ -65,6 +65,73 @@ The duel uses three AXL endpoints. Every byte exchanged between the agents flows
 
 **Identity verification.** `axl/keys/public-keys.json` records both each peer's full ed25519 `pubkey` (used as `X-Destination-Peer-Id` for outbound `/send`) and the AXL-derived `axl_peer_id` (a 64-char hex value the receiver sees on `X-From-Peer-Id`). The two are not equal: AXL derives the receiver-side ID from the sender's Yggdrasil IPv6, which only encodes a prefix of the pubkey. The mismatch is by design and documented in `AGENTS.md`.
 
+## Live demo results
+
+Real duels run against live Delphi mainnet markets. Each result below is a verbatim record from `data.db` — bull and bear ran in separate OS processes over the AXL mesh, the judge (third AXL node) read the full transcript and produced the verdict, all values are pulled directly from the SQLite tables.
+
+### 🏆 FIFA World Cup 2026 — Argentina vs England (multi-outcome head-to-head)
+
+| Round | Side | Outcome | P(my outcome wins) |
+|---|---|---|---|
+| 0 | Bull | Argentina | 0.32 |
+| 1 | Bear | England | 0.28 |
+| 2 | Bull | Argentina | 0.22 |
+| 3 | Bear | England | 0.26 |
+
+**Judge verdict: England wins the debate, 72% confidence, recommended position: moderate NO on Argentina.**
+
+> Bear effectively countered Bull's system-evolution argument by highlighting the irreplaceable nature of Messi's individual impact, while Bull never adequately addressed the core aging concern that drove their own probability down from 0.32 to 0.22. Bear's point about England's steady tournament improvement trajectory versus Argentina's unprecedented challenge of replacing Messi's clutch moments proved decisive.
+
+This is multi-outcome mode — bull and bear each defended a specific country among 20 candidates, so their probabilities are P(my country wins) and don't sum to 1 (other nations absorbed the rest of the mass). Both moved DOWN from their openings, which is the correct behaviour: as bear weakened bull's case, mass flowed away from Argentina without flowing to England.
+
+### 💰 Crypto: $10M+ exploit before end of May (binary)
+
+| Round | Side | P(YES) |
+|---|---|---|
+| 0 | Bull (YES) | 0.65 |
+| 1 | Bear (NO)  | 0.22 |
+| 2 | Bull (YES) | 0.58 |
+| 3 | Bear (NO)  | 0.42 |
+
+**Judge verdict: Bull wins, 70% confidence, recommended position: moderate YES.**
+
+Bull pivoted from the historical exploit base rate to specific cross-chain bridge risks (Wormhole, Ronin) when bear pushed back on hardening; bear conceded ground on cross-chain complexity (+0.20 update toward bull) but didn't recover. Demonstrates the agents *do* update against good evidence — bear didn't dig in despite arguing the contrary side.
+
+### 🏛️ Politics: US × Iran permanent peace deal by May 31 (binary, near-term)
+
+| Round | Side | P(YES) |
+|---|---|---|
+| 0 | Bull (YES) | 0.45 |
+| 1 | Bear (NO)  | 0.08 |
+| 2 | Bull (YES) | 0.42 |
+| 3 | Bear (NO)  | 0.12 |
+
+**Judge verdict: Bear wins, 75% confidence, recommended position: moderate NO.**
+
+Final disagreement gap of 0.30 — wider than the crypto duel — and bull never recovered from bear's opening framing of "permanent peace deal" as definitionally near-impossible inside the timeline. Useful demo case for showing the dashboard's "agents disagree" verdict text.
+
+### 🏀 NBA Champion 2026 — Oklahoma City Thunder vs Los Angeles Lakers (multi-outcome)
+
+| Round | Side | Outcome | P(my outcome wins) |
+|---|---|---|---|
+| 0 | Bull | Oklahoma City Thunder | 0.52 |
+| 1 | Bear | Los Angeles Lakers    | 0.32 |
+| 2 | Bull | Oklahoma City Thunder | 0.39 |
+| 3 | Bear | Los Angeles Lakers    | 0.22 |
+
+**Judge verdict: Lakers wins the debate, 70% confidence, recommended position: moderate NO on OKC.**
+
+> Bear successfully shifted Bull from 52% to 39% by highlighting the Lakers' playoff ceiling with LeBron-AD, while Bull's depth argument, though valid, couldn't overcome the star power reality in shortened playoff rotations. Bear's final point about rotations shrinking in the Finals directly countered Bull's core thesis and went unanswered.
+
+A 13-point swing on bull (0.52 → 0.39) — the agent argued itself out of its own pick. The judge picked up on it.
+
+### Aggregate
+
+- **Total turns produced across all duels:** 28 (4 turns × 7 duels)
+- **Average wall-clock per 4-turn duel:** ~75 seconds (Claude Sonnet calls dominate)
+- **Bytes flowing over AXL per duel:** ~5 KB transcript envelope at the end + ~1 KB per individual turn
+- **Verdicts where the agent that "won" started below the market-implied probability for their side:** 4 of 7 — the duel surfaces non-trivial information beyond the market consensus
+
 ## Tech stack
 
 | Layer | Choice |
