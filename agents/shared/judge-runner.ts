@@ -34,6 +34,7 @@ import {
   type DuelVerdict,
 } from "./protocol.js";
 import { openDb, DEFAULT_DB_PATH, type DuelDb, type BetRecord } from "./storage.js";
+import { loadSettingsOverride } from "./settings-override.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -237,24 +238,28 @@ async function judgeTranscript(t: DuelTranscript): Promise<VerdictPayload> {
 
 /* ---------- Phase 12: autonomous betting ---------- */
 
-const CONFIDENCE_THRESHOLD = 0.65;
+/** Hard-coded fallback when neither dashboard override nor env supplies one. */
+const DEFAULT_CONFIDENCE_THRESHOLD = 0.65;
 
 /**
  * Decide whether (and how) to act on a verdict. Returns:
  *   - {skip: true, reason} — judge should not place a bet (low confidence,
  *     neutral recommendation, can't resolve outcome name to index, etc.)
  *   - {skip: false, outcome_index, side} — bet on this outcome.
+ *
+ * @param threshold  Effective confidence cutoff (override > env > default).
  */
 function decideBet(
   verdict: VerdictRecord,
   envelope: DuelTranscript,
+  threshold: number,
 ):
   | { skip: true; reason: string }
   | { skip: false; outcome_index: number; side: "YES" | "NO"; outcome_name: string } {
-  if (verdict.confidence < CONFIDENCE_THRESHOLD) {
+  if (verdict.confidence < threshold) {
     return {
       skip: true,
-      reason: `confidence ${verdict.confidence.toFixed(2)} < ${CONFIDENCE_THRESHOLD} threshold`,
+      reason: `confidence ${verdict.confidence.toFixed(2)} < ${threshold} threshold`,
     };
   }
   const pos = verdict.recommended_position;
@@ -310,10 +315,22 @@ async function attemptAutoBet(
   envelope: DuelTranscript,
   db: DuelDb,
 ): Promise<void> {
-  const autoBetEnabled = process.env.AUTO_BET === "true";
-  const betSize = Number(process.env.BET_SIZE_USDC ?? "2.50");
+  // Pull dashboard overrides fresh on each attempt — operator can tweak
+  // the panel between duels and the next bet picks it up immediately.
+  const overrides = loadSettingsOverride();
+  const autoBetEnabled =
+    overrides.auto_bet ?? process.env.AUTO_BET === "true";
+  const betSize =
+    overrides.bet_size_usdc ?? Number(process.env.BET_SIZE_USDC ?? "2.50");
+  const threshold =
+    overrides.min_confidence ?? DEFAULT_CONFIDENCE_THRESHOLD;
+  if (overrides.bet_size_usdc != null || overrides.auto_bet != null || overrides.min_confidence != null) {
+    console.error(
+      `[judge] applying dashboard overrides: bet_size=${overrides.bet_size_usdc ?? "(env)"}, auto_bet=${overrides.auto_bet ?? "(env)"}, min_confidence=${overrides.min_confidence ?? "(default)"}`,
+    );
+  }
 
-  const decision = decideBet(verdict, envelope);
+  const decision = decideBet(verdict, envelope, threshold);
   const now = new Date().toISOString();
   const baseRecord = {
     duel_id: verdict.duel_id,

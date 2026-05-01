@@ -27,6 +27,9 @@ axl/axl-repo/
 *.db-shm
 *.db-wal
 
+# Dashboard-driven judge overrides — local operator state, not source.
+settings.json
+
 # Build output
 dist/
 .next/

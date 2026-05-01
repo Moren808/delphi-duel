@@ -4,3 +4,4 @@ export * from "./debate-engine.js";
 export * from "./storage.js";
 export * from "./agent-runner.js";
 export * from "./judge-runner.js";
+export * from "./settings-override.js";
