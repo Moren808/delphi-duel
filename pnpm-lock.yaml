@@ -26,6 +26,9 @@ importers:
       next:
         specifier: 14.2.0
         version: 14.2.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      viem:
+        specifier: ^2.48.0
+        version: 2.48.4(typescript@5.9.3)(zod@3.25.76)
       zod:
         specifier: ^3.22.0
         version: 3.25.76

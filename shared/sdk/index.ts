@@ -460,4 +460,5 @@ export async function placeBet(
 }
 
 export type { Market } from "@delphi-duel/shared-types";
-export type { Market as SdkMarket } from "@gensyn-ai/gensyn-delphi-sdk";
+export type { Market as SdkMarket, Network } from "@gensyn-ai/gensyn-delphi-sdk";
+export { DelphiClient } from "@gensyn-ai/gensyn-delphi-sdk";
