@@ -10,6 +10,7 @@ import { TranscriptPane } from "@/components/transcript-pane";
 import { AxlLog } from "@/components/axl-log";
 import { ResultCard } from "@/components/result-card";
 import { VerdictCard } from "@/components/verdict-card";
+import { BetsCard } from "@/components/bets-card";
 import {
   fetchActiveDuel,
   fetchTranscript,
@@ -262,6 +263,15 @@ export default function Home() {
                 duelId={duelId}
                 duelComplete={duelComplete}
                 inlineVerdict={inlineVerdict}
+                bullOutcome={turns[0]?.bull_outcome ?? null}
+                bearOutcome={turns[0]?.bear_outcome ?? null}
+              />
+            )}
+
+            {duelComplete && duelId && !viewingExample && (
+              <BetsCard
+                duelId={duelId}
+                duelComplete={duelComplete}
                 bullOutcome={turns[0]?.bull_outcome ?? null}
                 bearOutcome={turns[0]?.bear_outcome ?? null}
               />

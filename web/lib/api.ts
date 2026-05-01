@@ -3,7 +3,7 @@
  * Centralises error handling so components stay focused on UI.
  */
 
-import type { MarketSummary, MeshStatus, TurnRecord, VerdictRecord } from "./types";
+import type { BetRecord, MarketSummary, MeshStatus, TurnRecord, VerdictRecord } from "./types";
 
 async function getJson<T>(url: string): Promise<T> {
   const res = await fetch(url, { cache: "no-store" });
@@ -63,6 +63,28 @@ export async function startDuel(
     throw new Error(errMsg);
   }
   return json as { duel_id: string; market_id: string; started_at: string };
+}
+
+export interface BetResponse {
+  bet: BetRecord | null;
+  /** Server's AUTO_BET flag. When false, the client suppresses the bets panel. */
+  auto_bet_enabled: boolean;
+  /** "mainnet" | "testnet" — used to build the explorer link. */
+  network: string;
+}
+
+export async function fetchBet(duelId: string): Promise<BetResponse> {
+  const data = await getJson<{
+    duel_id: string;
+    bet: BetRecord | null;
+    auto_bet_enabled: boolean;
+    network: string;
+  }>(`/api/bet?duel_id=${encodeURIComponent(duelId)}`);
+  return {
+    bet: data.bet,
+    auto_bet_enabled: data.auto_bet_enabled,
+    network: data.network,
+  };
 }
 
 export async function fetchActiveDuel(): Promise<{

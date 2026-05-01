@@ -54,6 +54,29 @@ export interface VerdictRecord {
   produced_at: string;
 }
 
+export type BetStatus = "placed" | "failed" | "skipped";
+
+/**
+ * One row from the SQLite `bets` table — the judge writes one per duel
+ * once it reaches the betting branch (AUTO_BET=true and verdict
+ * confidence ≥ threshold).
+ */
+export interface BetRecord {
+  duel_id: string;
+  market_id: string;
+  /** 0-indexed outcome the judge bought shares of. */
+  outcome_index: number;
+  /** Target USDC amount, human units (not wei). */
+  amount_usdc: number;
+  /** On-chain tx hash if `status === "placed"`, else null. */
+  tx_hash: string | null;
+  status: BetStatus;
+  /** Free-form error / skip reason. */
+  error: string | null;
+  /** ISO 8601. */
+  timestamp: string;
+}
+
 export interface DemoMarket {
   id: string;
   category?: string;
