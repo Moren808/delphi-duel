@@ -1,13 +1,29 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Crown, Loader2 } from "lucide-react";
+import { Crown, Loader2, Wallet } from "lucide-react";
 import { useEffect, useState } from "react";
-import { fetchVerdict } from "@/lib/api";
+import { fetchBet, fetchVerdict, type BetResponse } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import type { VerdictRecord } from "@/lib/types";
 
 const POLL_MS = 1_500;
+
+/** Map outcome index → human label, mirroring BetsCard. */
+function outcomeLabel(
+  idx: number,
+  bullOutcome?: string | null,
+  bearOutcome?: string | null,
+): string {
+  if (bullOutcome && bearOutcome) {
+    if (idx === 0) return bullOutcome.toUpperCase();
+    if (idx === 1) return bearOutcome.toUpperCase();
+    return `OUTCOME #${idx}`;
+  }
+  if (idx === 0) return "YES";
+  if (idx === 1) return "NO";
+  return `OUTCOME #${idx}`;
+}
 
 interface Props {
   duelId: string;
@@ -44,6 +60,10 @@ export function VerdictCard({
 }: Props) {
   const [verdict, setVerdict] = useState<VerdictRecord | null>(inlineVerdict ?? null);
   const [polling, setPolling] = useState<boolean>(!inlineVerdict && duelComplete);
+  // Bet summary — polled in parallel with verdict so the verdict card and
+  // the BetsCard tell the same story together. Null until the judge
+  // reaches the betting branch.
+  const [bet, setBet] = useState<BetResponse | null>(null);
 
   // If a fixture verdict was passed, lock it in and don't poll.
   useEffect(() => {
@@ -88,6 +108,37 @@ export function VerdictCard({
       clearInterval(id);
     };
   }, [duelId, duelComplete, verdict, inlineVerdict]);
+
+  // Bet polling — same cadence as verdict, runs only on real (non-fixture)
+  // duels. Stops once we have a terminal row (placed/failed/skipped).
+  useEffect(() => {
+    if (inlineVerdict) return;
+    if (!duelComplete) return;
+
+    let cancelled = false;
+    const tick = async () => {
+      if (cancelled) return;
+      try {
+        const r = await fetchBet(duelId);
+        if (!cancelled) setBet(r);
+      } catch {
+        /* non-fatal */
+      }
+    };
+    void tick();
+    const id = setInterval(() => {
+      const status = bet?.bet?.status;
+      if (status === "placed" || status === "failed" || status === "skipped") {
+        clearInterval(id);
+        return;
+      }
+      void tick();
+    }, POLL_MS);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+    };
+  }, [duelId, duelComplete, inlineVerdict, bet?.bet?.status]);
 
   // Don't render until the duel is complete. Avoids visual noise mid-debate.
   if (!duelComplete) return null;
@@ -175,6 +226,33 @@ export function VerdictCard({
           {verdict.suggested_lean}
         </p>
       </div>
+
+      {/* Auto-bet summary line — appears once the judge has reached the
+          betting branch and AUTO_BET is enabled server-side. Mirrors the
+          BetsCard so both surfaces tell the same story at a glance. */}
+      {bet?.auto_bet_enabled && bet.bet && bet.bet.status !== "skipped" && (
+        <p className="mt-4 flex items-center gap-2 font-mono text-xs opacity-80">
+          <Wallet className="h-3.5 w-3.5" strokeWidth={2.5} />
+          <span>
+            auto-bet placed
+            <span className="opacity-60"> · </span>
+            ${bet.bet.amount_usdc.toFixed(2)} USDC
+            <span className="opacity-60"> · </span>
+            {outcomeLabel(bet.bet.outcome_index, bullOutcome, bearOutcome)} #{bet.bet.outcome_index}
+            <span className="opacity-60"> · </span>
+            <span
+              className={cn(
+                "font-bold",
+                bet.bet.status === "placed"
+                  ? "text-emerald-400 dark:text-emerald-600"
+                  : "text-rose-400 dark:text-rose-600",
+              )}
+            >
+              {bet.bet.status === "placed" ? "confirmed" : "failed"}
+            </span>
+          </span>
+        </p>
+      )}
     </motion.section>
   );
 }
