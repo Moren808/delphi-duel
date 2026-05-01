@@ -322,8 +322,15 @@ async function attemptAutoBet(
     overrides.auto_bet ?? process.env.AUTO_BET === "true";
   const betSize =
     overrides.bet_size_usdc ?? Number(process.env.BET_SIZE_USDC ?? "2.50");
+  const envThreshold =
+    process.env.BET_CONFIDENCE_THRESHOLD != null
+      ? Number(process.env.BET_CONFIDENCE_THRESHOLD)
+      : null;
   const threshold =
-    overrides.min_confidence ?? DEFAULT_CONFIDENCE_THRESHOLD;
+    overrides.min_confidence ??
+    (envThreshold != null && Number.isFinite(envThreshold)
+      ? envThreshold
+      : DEFAULT_CONFIDENCE_THRESHOLD);
   if (overrides.bet_size_usdc != null || overrides.auto_bet != null || overrides.min_confidence != null) {
     console.error(
       `[judge] applying dashboard overrides: bet_size=${overrides.bet_size_usdc ?? "(env)"}, auto_bet=${overrides.auto_bet ?? "(env)"}, min_confidence=${overrides.min_confidence ?? "(default)"}`,
