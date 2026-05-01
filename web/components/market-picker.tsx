@@ -1,16 +1,30 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { Play, Loader2 } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Play, Loader2, RefreshCw } from "lucide-react";
 import { DEMO_MARKETS } from "@/lib/markets";
+import { fetchAllMarkets } from "@/lib/api";
+import { classifyMarket, type PillCategory } from "@/lib/category-classifier";
 import { cn } from "@/lib/cn";
-import type { DemoMarket } from "@/lib/types";
+import type { MarketSummary } from "@/lib/types";
 
 /** Lightweight shape of /api/market/:id response — only the fields we use. */
 interface LiveMarket {
   id: string;
   market_type: "binary" | "multi_outcome";
   outcomes_list: Array<{ name: string; probability: number }>;
+}
+
+/**
+ * Common picker shape — every input source (live `/api/markets`,
+ * fallback `demo-markets.json`, manually-pasted ID) collapses into
+ * this. The classifier runs once per market so the pill filter
+ * doesn't have to re-classify on every keystroke.
+ */
+interface PickerMarket {
+  id: string;
+  question: string;
+  pill: PillCategory;
 }
 
 interface MarketPickerProps {
@@ -28,42 +42,48 @@ interface MarketPickerProps {
 
 const CUSTOM_VALUE = "__custom__";
 
-// Filter pills shown above the dropdown. The `cats` array maps a
-// user-facing label onto one or more underlying Delphi categories
-// (e.g. "AI/Tech" surfaces our culture-tagged gaming markets, which
-// are the closest thing Delphi catalogues for that frame).
-const PILLS: Array<{ label: string; cats: string[] }> = [
-  { label: "All", cats: [] },
-  { label: "Crypto", cats: ["crypto"] },
-  { label: "Sports", cats: ["sports"] },
-  { label: "AI/Tech", cats: ["culture"] },
-  { label: "Politics", cats: ["politics"] },
-  { label: "Misc", cats: ["miscellaneous"] },
+const PILLS: PillCategory[] = ["All", "Crypto", "Sports", "AI/Tech", "Politics", "Misc"];
+
+const PILL_ORDER_FOR_OPTGROUP: PillCategory[] = [
+  "Crypto",
+  "Sports",
+  "Politics",
+  "AI/Tech",
+  "Misc",
 ];
-
-// Order categories appear inside the dropdown's optgroups.
-const CATEGORY_ORDER = ["crypto", "sports", "politics", "culture", "miscellaneous"];
-
-function groupByCategory(markets: DemoMarket[]): Map<string, DemoMarket[]> {
-  const groups = new Map<string, DemoMarket[]>();
-  for (const m of markets) {
-    const cat = m.category ?? "uncategorised";
-    if (!groups.has(cat)) groups.set(cat, []);
-    groups.get(cat)!.push(m);
-  }
-  // Re-key in CATEGORY_ORDER, then append any unknown buckets.
-  const ordered = new Map<string, DemoMarket[]>();
-  for (const cat of CATEGORY_ORDER) {
-    if (groups.has(cat)) ordered.set(cat, groups.get(cat)!);
-  }
-  for (const [cat, list] of groups) {
-    if (!ordered.has(cat)) ordered.set(cat, list);
-  }
-  return ordered;
-}
 
 function fmtPct(p: number): string {
   return `${(p * 100).toFixed(1)}%`;
+}
+
+function summaryToPicker(m: MarketSummary): PickerMarket {
+  return {
+    id: m.id,
+    question: m.question,
+    pill: classifyMarket(m.category, m.question),
+  };
+}
+
+function demoToPicker(m: { id: string; question?: string; category?: string }): PickerMarket {
+  const q = m.question ?? `(market ${m.id.slice(0, 12)}…)`;
+  return { id: m.id, question: q, pill: classifyMarket(m.category, q) };
+}
+
+function groupByPill(markets: PickerMarket[]): Map<PillCategory, PickerMarket[]> {
+  const groups = new Map<PillCategory, PickerMarket[]>();
+  for (const m of markets) {
+    if (!groups.has(m.pill)) groups.set(m.pill, []);
+    groups.get(m.pill)!.push(m);
+  }
+  // Re-key in canonical order, then append unknown buckets (defensive).
+  const ordered = new Map<PillCategory, PickerMarket[]>();
+  for (const pill of PILL_ORDER_FOR_OPTGROUP) {
+    if (groups.has(pill)) ordered.set(pill, groups.get(pill)!);
+  }
+  for (const [pill, list] of groups) {
+    if (!ordered.has(pill)) ordered.set(pill, list);
+  }
+  return ordered;
 }
 
 export function MarketPicker({
@@ -73,33 +93,79 @@ export function MarketPicker({
   starting = false,
   initialMarketId,
 }: MarketPickerProps) {
-  const initial =
-    initialMarketId && DEMO_MARKETS.some((m) => m.id === initialMarketId)
-      ? initialMarketId
-      : DEMO_MARKETS[0]?.id ?? "";
-  const [selected, setSelected] = useState<string>(initial);
-  const [custom, setCustom] = useState<string>(initialMarketId && !DEMO_MARKETS.some((m) => m.id === initialMarketId) ? initialMarketId : "");
-  const [activePill, setActivePill] = useState<string>("All");
+  /* ───────────────────── live market list state ───────────────────── */
 
-  // Live market metadata — fetched whenever the active marketId changes.
-  // Used to detect binary vs multi-outcome and to render the outcomes
-  // dropdowns with their implied probabilities.
+  // Initial paint: show whatever's in the bundled demo-markets.json so
+  // the dropdown isn't empty during the live fetch. Once the live
+  // fetch resolves we replace; on failure we keep the fallback.
+  const fallbackList = useMemo<PickerMarket[]>(
+    () => DEMO_MARKETS.map(demoToPicker),
+    [],
+  );
+  const [marketsList, setMarketsList] = useState<PickerMarket[]>(fallbackList);
+  const [marketsLoading, setMarketsLoading] = useState<boolean>(true);
+  const [marketsSource, setMarketsSource] = useState<"live" | "fallback">("fallback");
+  const [marketsError, setMarketsError] = useState<string | null>(null);
+
+  const loadMarkets = useCallback(async (force = false) => {
+    setMarketsLoading(true);
+    setMarketsError(null);
+    try {
+      const live = await fetchAllMarkets(force);
+      setMarketsList(live.map(summaryToPicker));
+      setMarketsSource("live");
+    } catch (err) {
+      // 503 (no API key in demo deploy), 502 (Delphi flaky), network — all
+      // fall through to the bundled fallback.
+      setMarketsList(fallbackList);
+      setMarketsSource("fallback");
+      setMarketsError((err as Error).message ?? "fetch failed");
+    } finally {
+      setMarketsLoading(false);
+    }
+  }, [fallbackList]);
+
+  // Initial load on mount.
+  useEffect(() => {
+    void loadMarkets(false);
+  }, [loadMarkets]);
+
+  /* ───────────────────── selection state ───────────────────── */
+
+  const [selected, setSelected] = useState<string>(initialMarketId ?? "");
+  const [custom, setCustom] = useState<string>("");
+  const [activePill, setActivePill] = useState<PillCategory>("All");
+
+  // Once the markets list lands, snap the selection to a sensible default
+  // if we don't already have a valid one in view.
+  useEffect(() => {
+    if (selected === CUSTOM_VALUE) return;
+    if (marketsList.length === 0) return;
+    const stillVisible = marketsList.some((m) => m.id === selected);
+    if (!stillVisible) {
+      // Try the initial requested ID first, then fall back to the head of the list.
+      const initial = initialMarketId && marketsList.some((m) => m.id === initialMarketId)
+        ? initialMarketId
+        : marketsList[0].id;
+      setSelected(initial);
+    }
+  }, [marketsList, selected, initialMarketId]);
+
+  // Live market metadata for the selected market — drives the
+  // outcome picker for multi-outcome markets.
   const [liveMarket, setLiveMarket] = useState<LiveMarket | null>(null);
-  // User's outcome picks for multi-outcome markets. Defaults are seeded
-  // when liveMarket lands (top probability for bull, second for bear).
   const [bullOutcome, setBullOutcome] = useState<string>("");
   const [bearOutcome, setBearOutcome] = useState<string>("");
 
-  // Apply the active pill filter to the master list, then group by
-  // category for optgroup rendering. Selecting "All" returns everything.
+  /* ───────────────────── filter + group ───────────────────── */
+
   const filteredGroups = useMemo(() => {
-    const pill = PILLS.find((p) => p.label === activePill);
     const filtered =
-      !pill || pill.cats.length === 0
-        ? DEMO_MARKETS
-        : DEMO_MARKETS.filter((m) => pill.cats.includes(m.category ?? ""));
-    return groupByCategory(filtered);
-  }, [activePill]);
+      activePill === "All"
+        ? marketsList
+        : marketsList.filter((m) => m.pill === activePill);
+    return groupByPill(filtered);
+  }, [activePill, marketsList]);
 
   const flatFiltered = useMemo(
     () => Array.from(filteredGroups.values()).flat(),
@@ -107,27 +173,27 @@ export function MarketPicker({
   );
 
   // If the current selection isn't visible under the active pill,
-  // snap to the first market in the filtered list.
+  // snap to the first visible market.
   useEffect(() => {
     if (selected === CUSTOM_VALUE) return;
+    if (flatFiltered.length === 0) return;
     const visible = flatFiltered.some((m) => m.id === selected);
-    if (!visible && flatFiltered.length > 0) setSelected(flatFiltered[0].id);
+    if (!visible) setSelected(flatFiltered[0].id);
   }, [activePill, flatFiltered, selected]);
+
+  /* ───────────────────── derived ───────────────────── */
 
   const isCustom = selected === CUSTOM_VALUE;
   const marketId = isCustom ? custom.trim() : selected;
   const canStart = !disabled && !starting && marketId.length > 0;
 
   // Bubble selection changes up to the page so it can render context
-  // panels (e.g. MarketSummaryCard) keyed off the current selection.
+  // panels (e.g. MarketSummaryCard).
   useEffect(() => {
     if (marketId.length > 0) onSelectionChange?.(marketId);
   }, [marketId, onSelectionChange]);
 
-  // Fetch live market shape when the selection changes. On failure
-  // (no API key in demo mode, etc.) we keep liveMarket null and the
-  // outcome picker simply doesn't render — binary markets don't need
-  // it anyway, and demo deployments mostly preview binary markets.
+  // Hydrate per-market metadata for the multi-outcome detector.
   useEffect(() => {
     if (!marketId || marketId.length < 4) {
       setLiveMarket(null);
@@ -140,7 +206,6 @@ export function MarketPicker({
         if (cancelled) return;
         const m = data?.market ?? null;
         setLiveMarket(m);
-        // Seed defaults: top probability → bull, second → bear.
         if (m && m.market_type === "multi_outcome" && m.outcomes_list?.length >= 2) {
           const sorted = [...m.outcomes_list].sort(
             (a, b) => b.probability - a.probability,
@@ -165,10 +230,7 @@ export function MarketPicker({
   const handleStart = async () => {
     if (!canStart) return;
     if (isMulti && bullOutcome && bearOutcome) {
-      if (bullOutcome === bearOutcome) {
-        // No-op — buttons should be guarded but be defensive.
-        return;
-      }
+      if (bullOutcome === bearOutcome) return;
       await onStart(marketId, { bull_outcome: bullOutcome, bear_outcome: bearOutcome });
     } else {
       await onStart(marketId);
@@ -178,26 +240,60 @@ export function MarketPicker({
   const startDisabled =
     !canStart || (isMulti && (!bullOutcome || !bearOutcome || bullOutcome === bearOutcome));
 
+  /* ───────────────────── render ───────────────────── */
+
   return (
     <section className="rounded-2xl border border-ink bg-white p-6 dark:border-stone-100 dark:bg-stone-900">
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-4 flex items-center justify-between gap-3">
         <h2 className="font-mono text-sm uppercase tracking-wider text-ink dark:text-stone-100">
           market
         </h2>
-        <span className="font-mono text-xs text-ink-muted dark:text-stone-400">
-          delphi mainnet
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="font-mono text-xs text-ink-muted dark:text-stone-400">
+            {marketsLoading ? (
+              <span className="inline-flex items-center gap-1.5">
+                <Loader2 className="h-3 w-3 animate-spin" />
+                fetching live markets…
+              </span>
+            ) : marketsSource === "live" ? (
+              <>delphi mainnet · {marketsList.length} live</>
+            ) : (
+              <>
+                fallback · bundled set
+                {marketsError ? (
+                  <span className="ml-1 text-rose-500" title={marketsError}>(live unavailable)</span>
+                ) : null}
+              </>
+            )}
+          </span>
+          <button
+            type="button"
+            onClick={() => loadMarkets(true)}
+            disabled={marketsLoading || disabled || starting}
+            title="Refresh markets"
+            aria-label="Refresh markets"
+            className={cn(
+              "inline-flex h-9 w-9 items-center justify-center rounded-full",
+              "border-2 border-ink text-ink transition",
+              "hover:bg-ink hover:text-cream",
+              "dark:border-stone-100 dark:text-stone-100 dark:hover:bg-stone-100 dark:hover:text-stone-950",
+              "disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-ink dark:disabled:hover:bg-transparent dark:disabled:hover:text-stone-100",
+            )}
+          >
+            <RefreshCw className={cn("h-4 w-4", marketsLoading && "animate-spin")} />
+          </button>
+        </div>
       </div>
 
       {/* Filter pills: clicking narrows the dropdown to one category. */}
       <div className="mb-4 flex flex-wrap items-center gap-2">
         {PILLS.map((pill) => {
-          const active = pill.label === activePill;
+          const active = pill === activePill;
           return (
             <button
-              key={pill.label}
+              key={pill}
               type="button"
-              onClick={() => setActivePill(pill.label)}
+              onClick={() => setActivePill(pill)}
               disabled={disabled || starting}
               className={cn(
                 "rounded-full border-2 px-4 py-1.5 font-mono text-sm font-medium transition",
@@ -207,7 +303,7 @@ export function MarketPicker({
                 "disabled:cursor-not-allowed disabled:opacity-50",
               )}
             >
-              {pill.label}
+              {pill}
             </button>
           );
         })}
@@ -218,7 +314,7 @@ export function MarketPicker({
           <select
             value={selected}
             onChange={(e) => setSelected(e.target.value)}
-            disabled={disabled || starting}
+            disabled={disabled || starting || marketsLoading}
             className={cn(
               "w-full rounded-xl border border-ink bg-cream px-4 py-3",
               "text-base text-ink",
@@ -227,11 +323,16 @@ export function MarketPicker({
               "dark:border-stone-100 dark:bg-stone-950 dark:text-stone-100 dark:focus:ring-stone-100",
             )}
           >
-            {Array.from(filteredGroups.entries()).map(([cat, markets]) => (
-              <optgroup key={cat} label={cat.charAt(0).toUpperCase() + cat.slice(1)}>
+            {flatFiltered.length === 0 && !marketsLoading && (
+              <option value="" disabled>
+                no markets in this category
+              </option>
+            )}
+            {Array.from(filteredGroups.entries()).map(([pill, markets]) => (
+              <optgroup key={pill} label={pill}>
                 {markets.map((m) => (
                   <option key={m.id} value={m.id}>
-                    {m.question ?? m.id}
+                    {m.question}
                   </option>
                 ))}
               </optgroup>
@@ -256,9 +357,9 @@ export function MarketPicker({
             />
           )}
 
-          {!isCustom && (
+          {!isCustom && marketId && (
             <p className="font-mono text-xs text-ink-muted dark:text-stone-400">
-              {DEMO_MARKETS.find((m) => m.id === selected)?.id ?? ""}
+              {marketId}
             </p>
           )}
         </div>

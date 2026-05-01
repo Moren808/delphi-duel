@@ -3,7 +3,7 @@
  * Centralises error handling so components stay focused on UI.
  */
 
-import type { MeshStatus, TurnRecord, VerdictRecord } from "./types";
+import type { MarketSummary, MeshStatus, TurnRecord, VerdictRecord } from "./types";
 
 async function getJson<T>(url: string): Promise<T> {
   const res = await fetch(url, { cache: "no-store" });
@@ -16,6 +16,19 @@ async function getJson<T>(url: string): Promise<T> {
 
 export async function fetchMeshStatus(): Promise<MeshStatus> {
   return getJson<MeshStatus>("/api/mesh-status");
+}
+
+/**
+ * Pull all open Delphi mainnet markets via /api/markets. Pass
+ * `force: true` to bypass the route's 30s cache.
+ */
+export async function fetchAllMarkets(
+  force = false,
+): Promise<MarketSummary[]> {
+  const data = await getJson<{ markets: MarketSummary[]; cached: boolean; fetched_at: string }>(
+    `/api/markets${force ? "?refresh=1" : ""}`,
+  );
+  return data.markets;
 }
 
 export async function fetchTranscript(duelId: string): Promise<TurnRecord[]> {

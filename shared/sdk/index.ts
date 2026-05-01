@@ -194,5 +194,107 @@ export async function listMarkets(
   return markets ?? [];
 }
 
+/* ---------- listAllMarkets — paginated full sweep ---------- */
+
+/**
+ * Slim summary shape used by the dashboard's market picker. Distinct
+ * from the full canonical Market so we can return many of these fast
+ * without running per-market subgraph queries for implied_probabilities
+ * (those happen lazily via /api/market/<id> when the user actually
+ * selects a market).
+ */
+export interface MarketSummary {
+  id: string;
+  question: string;
+  /** SDK-assigned category (crypto / sports / politics / culture / miscellaneous / economics). */
+  category: string;
+  outcomes: string[];
+  /** ISO 8601, or empty string if the market metadata had no resolves field. */
+  close_date: string;
+  status: string;
+  /**
+   * Optional — implied probabilities per outcome. NOT populated by
+   * listAllMarkets() because that would require N subgraph round-trips.
+   * Only present when the caller explicitly asked for it.
+   */
+  implied_probabilities?: number[];
+  /**
+   * Optional — total trade volume. Same caveat as implied_probabilities.
+   * Reserved for future use.
+   */
+  volume?: number;
+}
+
+/**
+ * Project an SDK Market (with its `metadata: unknown`) into our slim
+ * MarketSummary. Pure — no network calls.
+ */
+function summarise(sdk: SdkMarket): MarketSummary {
+  const meta = asMetadata(sdk.metadata);
+  const outcomes =
+    Array.isArray(meta.outcomes) && meta.outcomes.length > 0
+      ? meta.outcomes.map((o) => String(o))
+      : ["Yes", "No"];
+  const question =
+    meta.question ?? meta.title ?? `(market ${sdk.id.slice(0, 12)}…)`;
+  const close = sdk.resolvesAt ?? meta.endDate ?? sdk.settlesAt ?? null;
+  return {
+    id: sdk.id,
+    question: String(question).trim(),
+    category: sdk.category || meta.category || "miscellaneous",
+    outcomes,
+    close_date: close ? new Date(close).toISOString() : "",
+    status: sdk.status,
+  };
+}
+
+/**
+ * Fetch ALL open markets via repeated listMarkets() calls until the
+ * SDK returns an empty page. Default page size is 50 (the SDK's max),
+ * so a typical mainnet sweep is 2–4 pages.
+ *
+ * Use this for the picker dropdown. Per-market hydration of
+ * implied_probabilities / volume happens lazily via fetchMarket()
+ * (which hits the subgraph) when a market is actually selected.
+ *
+ * @param opts.status      "open" | "closed" | "settled". Default "open".
+ * @param opts.category    Filter at the API level. Default: no filter.
+ * @param opts.pageSize    Page size — default 50, the SDK cap.
+ * @param opts.maxPages    Safety cap on iterations. Default 20 (= 1000 markets).
+ */
+export async function listAllMarkets(opts: {
+  status?: string;
+  category?: string;
+  pageSize?: number;
+  maxPages?: number;
+} = {}): Promise<MarketSummary[]> {
+  const status = opts.status ?? "open";
+  const category = opts.category;
+  const pageSize = opts.pageSize ?? 50;
+  const maxPages = opts.maxPages ?? 20;
+
+  const client = getClient();
+  const out: MarketSummary[] = [];
+  const seen = new Set<string>();
+
+  for (let page = 0; page < maxPages; page++) {
+    const skip = page * pageSize;
+    const { markets } = await client.listMarkets({
+      status,
+      ...(category ? { category } : {}),
+      skip,
+      limit: pageSize,
+    });
+    if (!markets || markets.length === 0) break;
+    for (const m of markets) {
+      if (seen.has(m.id)) continue;
+      seen.add(m.id);
+      out.push(summarise(m));
+    }
+    if (markets.length < pageSize) break; // last page (partial)
+  }
+  return out;
+}
+
 export type { Market } from "@delphi-duel/shared-types";
 export type { Market as SdkMarket } from "@gensyn-ai/gensyn-delphi-sdk";

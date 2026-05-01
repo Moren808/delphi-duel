@@ -1,39 +1,61 @@
 {
-  "_comment": "10 curated open Delphi mainnet markets for run-duel and the web UI. Captured 2026-04-29; re-verified 2026-05-01 — all 10 still open, all categories match the live SDK response. Mix of binary and multi-outcome, resolution dates spread May–Dec 2026.",
+  "_comment": "Auto-generated fallback snapshot of all open Delphi mainnet markets. Captured 2026-05-01. Used by the dashboard ONLY when /api/markets fails (e.g. demo deploys without DELPHI_API_ACCESS_KEY). Live markets are fetched at runtime — this file is just the safety net.",
   "network": "mainnet",
+  "fetched_at": "2026-05-01T08:40:07.272Z",
   "markets": [
+    {
+      "id": "0xd850ae78d43c35bd471ed4e725114da56588a3db",
+      "category": "sports",
+      "question": "UEFA Champions League 2025-26 Winner",
+      "outcomes": [
+        "Bayern Munich",
+        "Arsenal",
+        "PSG",
+        "Atletico Madrid",
+        "Club Brugge",
+        "Other"
+      ],
+      "resolves_at": "2026-05-31T21:00:00.000Z",
+      "status": "open"
+    },
+    {
+      "id": "0x5cb7c2b2e3cbd0e0b9cd598c7a093c3028f6b5c1",
+      "category": "sports",
+      "question": "2025-26 La Liga Winner",
+      "outcomes": [
+        "Barcelona",
+        "Real Madrid",
+        "Villarreal",
+        "Other / Inconclusive / Cancelled"
+      ],
+      "resolves_at": "2026-06-01T21:00:00.000Z",
+      "status": "open"
+    },
+    {
+      "id": "0x9eab076a6ba80369399f6f0284f256dac42ac20b",
+      "category": "sports",
+      "question": "2025-26 English Premier League Winner",
+      "outcomes": [
+        "Manchester City",
+        "Arsenal",
+        "Liverpool",
+        "Manchester United",
+        "Aston Villa",
+        "Other / Inconclusive / Cancelled"
+      ],
+      "resolves_at": "2026-06-02T21:00:00.000Z",
+      "status": "open"
+    },
     {
       "id": "0xc81b47c859a8b8290c3931d46562b547d283d3f4",
       "category": "crypto",
       "question": "Will there be another $10+ million exploit in Crypto before end of May?",
-      "outcomes": ["Yes", "No"],
-      "resolves_at": "2026-05-31T22:00:00Z",
-      "demo_pitch": "Binary, near-term, fact-driven. Bull cites recent exploit cadence, bear cites improving audit/insurance practices. Battle-tested debate dynamics."
-    },
-    {
-      "id": "0xf11086b591b3da32c5b2e24bb46e5ca2332faa5b",
-      "category": "crypto",
-      "question": "Will daily x402 volume hit $3M in 2026?",
-      "outcomes": ["Yes", "No"],
-      "resolves_at": "2026-12-31T16:59:00Z",
-      "demo_pitch": "Closest thing to AI/tech in Delphi's catalog. x402 is the agentic-payment protocol; debate is about adoption curves and developer momentum."
-    },
-    {
-      "id": "0x52a75af1d153d4dce761d72495a7e0daaf21a170",
-      "category": "crypto",
-      "question": "Total Crypto Market Cap By The End of 2026",
       "outcomes": [
-        "Below 1.5 Trillion",
-        "1.5-2 Trillion",
-        "2-2.5 Trillion",
-        "2.5-3 Trillion",
-        "3-3.5 Trillion",
-        "3.5-4 Trillion",
-        "4-4.5 Trillion",
-        "Above 4.5 Trillion"
+        "Yes",
+        "No"
       ],
-      "resolves_at": "2026-12-31T22:59:00Z",
-      "demo_pitch": "Multi-outcome (8 buckets) macro debate. Stress-tests our champion-outcome logic; the orchestrator picks one bucket as YES and the rest as NO."
+      "resolves_at": "2026-05-31T22:00:00.000Z",
+      "status": "open"
     },
     {
       "id": "0xe4649da9f8c52b9d6c611627c5a060331079de4a",
@@ -61,34 +83,19 @@
         "Turkiye",
         "Other"
       ],
-      "resolves_at": "2026-07-20T19:00:00Z",
-      "demo_pitch": "Universally recognizable. The biggest sports market for this period — every pitch audience has an opinion."
+      "resolves_at": "2026-07-20T19:00:00.000Z",
+      "status": "open"
     },
     {
-      "id": "0x3e43eee0ccb9ce348eb5d4d0eba29ef4a4e4572d",
-      "category": "sports",
-      "question": "2026 NBA Champion",
+      "id": "0x90973941f0ecaac8762d25d1c6d664e2434ec61e",
+      "category": "miscellaneous",
+      "question": "Will aliens formally introduce themselves in 2026?",
       "outcomes": [
-        "Oklahoma City Thunder",
-        "San Antonio Spurs",
-        "Boston Celtics",
-        "Denver Nuggets",
-        "Cleveland Cavaliers",
-        "New York Knicks",
-        "Detroit Pistons",
-        "Los Angeles Lakers",
-        "Houston Rockets",
-        "Minnesota Timberwolves",
-        "Orlando Magic",
-        "Toronto Raptors",
-        "Portland Trail Blazers",
-        "Atlanta Hawks",
-        "Philadelphia 76ers",
-        "Phoenix Suns",
-        "Other"
+        "Yes",
+        "No"
       ],
-      "resolves_at": "2026-06-20T21:00:00Z",
-      "demo_pitch": "Near-term US team-sport multi-outcome. Resolves June so there's still real uncertainty."
+      "resolves_at": "2026-12-31T17:00:00.000Z",
+      "status": "open"
     },
     {
       "id": "0xcfe10b08c12388e5e40ae37bbdc86063e54d3ec9",
@@ -116,40 +123,591 @@
         "Carlos Sainz Jr.",
         "Other"
       ],
-      "resolves_at": "2026-12-07T22:00:00Z",
-      "demo_pitch": "Long-horizon individual sport with 20 candidates. Useful contrast to team sports — agents have to reason about season-long form, team performance, reliability."
+      "resolves_at": "2026-12-07T22:00:00.000Z",
+      "status": "open"
     },
     {
       "id": "0x069ccd394581b8629b4791d492b4f36f48376fde",
       "category": "politics",
       "question": "US x Iran permanent peace deal by May 31, 2026",
-      "outcomes": ["Yes", "No"],
-      "resolves_at": "2026-06-01T03:59:00Z",
-      "demo_pitch": "High-stakes geopolitics, near-term resolution. Prior demo run had bull open below market at 0.15 and agents converged on NO — showcases honest-analyst behavior."
+      "outcomes": [
+        "Yes",
+        "No"
+      ],
+      "resolves_at": "2026-06-01T03:59:00.000Z",
+      "status": "open"
     },
     {
-      "id": "0x90973941f0ecaac8762d25d1c6d664e2434ec61e",
-      "category": "miscellaneous",
-      "question": "Will aliens formally introduce themselves in 2026?",
-      "outcomes": ["Yes", "No"],
-      "resolves_at": "2026-12-31T17:00:00Z",
-      "demo_pitch": "Whimsical closer. Low-stakes, lets agents flex without anyone getting hurt by a wrong answer."
+      "id": "0xf11086b591b3da32c5b2e24bb46e5ca2332faa5b",
+      "category": "crypto",
+      "question": "Will daily x402 volume hit $3M in 2026?",
+      "outcomes": [
+        "Yes",
+        "No"
+      ],
+      "resolves_at": "2026-12-31T16:59:00.000Z",
+      "status": "open"
+    },
+    {
+      "id": "0x46a12846a919793add5f786ae8183b3c3ce64407",
+      "category": "crypto",
+      "question": "Will Microstrategy announce a Bitcoin purchase April 28th - May 4th?",
+      "outcomes": [
+        "Yes",
+        "No"
+      ],
+      "resolves_at": "2026-05-04T23:59:00.000Z",
+      "status": "open"
+    },
+    {
+      "id": "0x691f4ab546a80986911a4dd4d4ed556ecbe2dd60",
+      "category": "sports",
+      "question": "2026 Men's French Open Winner",
+      "outcomes": [
+        "Jannik Sinner",
+        "Carlos Alcaraz",
+        "Alexander Zverev",
+        "Arthur Fils",
+        "Novak Djokovic",
+        "Lorenzo Musetti",
+        "Ben Shelton",
+        "João Fonseca",
+        "Félix Auger-Aliassime",
+        "Alex de Minaur",
+        "Learner Tien",
+        "Alexander Bublik",
+        "Tommy Paul",
+        "Jiří Lehečka",
+        "Casper Ruud",
+        "Francisco Cerúndolo",
+        "Andrey Rublev",
+        "Alejandro Tabilo",
+        "Stefanos Tsitsipas",
+        "Other / Inconclusive / Canceled"
+      ],
+      "resolves_at": "2026-06-08T21:00:00.000Z",
+      "status": "open"
+    },
+    {
+      "id": "0xb02cb85d0f485191863c21a535d96effc53f2f18",
+      "category": "sports",
+      "question": "2026 F1 Constructors' Champion",
+      "outcomes": [
+        "Mercedes",
+        "Ferrari",
+        "McLaren",
+        "Red Bull Racing",
+        "Aston Martin",
+        "Audi",
+        "Williams",
+        "Cadillac",
+        "Racing Bulls",
+        "Haas",
+        "Alpine",
+        "Other"
+      ],
+      "resolves_at": "2026-12-07T22:00:00.000Z",
+      "status": "open"
+    },
+    {
+      "id": "0x532af5883d45a5e0125adce1868833c649ce6426",
+      "category": "sports",
+      "question": "2026 NHL Stanley Cup Champion",
+      "outcomes": [
+        "Colorado Avalanche",
+        "Carolina Hurricanes",
+        "Edmonton Oilers",
+        "Buffalo Sabres",
+        "Tampa Bay Lightning",
+        "Vegas Golden Knights",
+        "Minnesota Wild",
+        "Montreal Canadiens",
+        "Dallas Stars",
+        "Ottawa Senators",
+        "Pittsburgh Penguins",
+        "Philadelphia Flyers",
+        "Utah Mammoth",
+        "Anaheim Ducks",
+        "Boston Bruins",
+        "Los Angeles Kings",
+        "Other / Inconclusive / Cancelled"
+      ],
+      "resolves_at": "2026-06-30T21:00:00.000Z",
+      "status": "open"
+    },
+    {
+      "id": "0x3e43eee0ccb9ce348eb5d4d0eba29ef4a4e4572d",
+      "category": "sports",
+      "question": "2026 NBA Champion",
+      "outcomes": [
+        "Oklahoma City Thunder",
+        "San Antonio Spurs",
+        "Boston Celtics",
+        "Denver Nuggets",
+        "Cleveland Cavaliers",
+        "New York Knicks",
+        "Detroit Pistons",
+        "Los Angeles Lakers",
+        "Houston Rockets",
+        "Minnesota Timberwolves",
+        "Orlando Magic",
+        "Toronto Raptors",
+        "Portland Trail Blazers",
+        "Atlanta Hawks",
+        "Philadelphia 76ers",
+        "Phoenix Suns",
+        "Other"
+      ],
+      "resolves_at": "2026-06-20T21:00:00.000Z",
+      "status": "open"
+    },
+    {
+      "id": "0x3d4d5693808e7253fc09b4ade97e33876f60b6a0",
+      "category": "sports",
+      "question": "2026 IPL Champion",
+      "outcomes": [
+        "Punjab Kings",
+        "Royal Challengers Bengaluru",
+        "Rajasthan Royals",
+        "Mumbai Indians",
+        "Delhi Capitals",
+        "Gujarat Titans",
+        "Sunrisers Hyderabad",
+        "Chennai Super Kings",
+        "Lucknow Super Giants",
+        "Kolkata Knight Riders",
+        "Inconclusive / Canceled"
+      ],
+      "resolves_at": "2026-06-01T21:00:00.000Z",
+      "status": "open"
+    },
+    {
+      "id": "0xf43438af8f114ff9cb9236d16e577590612ccdb0",
+      "category": "crypto",
+      "question": "MegaETH FDV over $2B 24 hours after TGE",
+      "outcomes": [
+        "Yes",
+        "No"
+      ],
+      "resolves_at": "2026-05-01T16:00:00.000Z",
+      "status": "open"
+    },
+    {
+      "id": "0xe442ea6147181391d62d6ed45f856e4426f4eed5",
+      "category": "culture",
+      "question": "Eurovision 2026 Winner",
+      "outcomes": [
+        "Finland",
+        "France",
+        "Denmark",
+        "Australia",
+        "Greece",
+        "Israel",
+        "Sweden",
+        "Italy",
+        "Romania",
+        "Ukraine",
+        "Bulgaria",
+        "Cyprus",
+        "Malta",
+        "Czechia",
+        "Moldova",
+        "Croatia",
+        "Luxembourg",
+        "Norway",
+        "Germany",
+        "Other"
+      ],
+      "resolves_at": "2026-05-16T21:30:00.000Z",
+      "status": "open"
+    },
+    {
+      "id": "0x9fc33647e2a0f030d282484748970507e49bc1b6",
+      "category": "sports",
+      "question": "2026 Men's Wimbledon Winner",
+      "outcomes": [
+        "Jannik Sinner",
+        "Carlos Alcaraz",
+        "Novak Djokovic",
+        "Alexander Zverev",
+        "Taylor Fritz",
+        "Jack Draper",
+        "Ben Shelton",
+        "Félix Auger-Aliassime",
+        "João Fonseca",
+        "Alexander Bublik",
+        "Alex de Minaur",
+        "Arthur Fils",
+        "Daniil Medvedev",
+        "Jakub Menšík",
+        "Lorenzo Musetti",
+        "Jiří Lehečka",
+        "Andrey Rublev",
+        "Matteo Berrettini",
+        "Casper Ruud",
+        "Other / Inconclusive / Canceled"
+      ],
+      "resolves_at": "2026-07-13T21:00:00.000Z",
+      "status": "open"
+    },
+    {
+      "id": "0x6cf11f514a834ef654adc63be81134bcdc4f072f",
+      "category": "sports",
+      "question": "2026 MLB World Series Champion",
+      "outcomes": [
+        "Los Angeles Dodgers",
+        "New York Yankees",
+        "Atlanta Braves",
+        "Seattle Mariners",
+        "Toronto Blue Jays",
+        "Philadelphia Phillies",
+        "Detroit Tigers",
+        "New York Mets",
+        "Chicago Cubs",
+        "Texas Rangers",
+        "Milwaukee Brewers",
+        "Boston Red Sox",
+        "San Diego Padres",
+        "Pittsburgh Pirates",
+        "Baltimore Orioles",
+        "Tampa Bay Rays",
+        "Houston Astros",
+        "Cleveland Guardians",
+        "Kansas City Royals",
+        "Other / Inconclusive / Cancelled"
+      ],
+      "resolves_at": "2026-11-15T22:00:00.000Z",
+      "status": "open"
+    },
+    {
+      "id": "0x7622c7b440bc9cd15cfb1c3a3e55d6740f8e3614",
+      "category": "sports",
+      "question": "2026 Women's Wimbledon Winner",
+      "outcomes": [
+        "Aryna Sabalenka",
+        "Elena Rybakina",
+        "Iga Świątek",
+        "Amanda Anisimova",
+        "Coco Gauff",
+        "Liudmila Samsonova",
+        "Mirra Andreeva",
+        "Victoria Mboko",
+        "Emma Raducanu",
+        "Jessica Pegula",
+        "Karolína Muchová",
+        "Tatjana Maria",
+        "Elina Svitolina",
+        "Jasmine Paolini",
+        "Markéta Vondroušová",
+        "Madison Keys",
+        "Belinda Bencic",
+        "Linda Nosková",
+        "Donna Vekić",
+        "Other / Inconclusive / Canceled"
+      ],
+      "resolves_at": "2026-07-13T21:00:00.000Z",
+      "status": "open"
+    },
+    {
+      "id": "0xf692f8d9d0d0c1fa74ac3a8112560c26ebc60b96",
+      "category": "sports",
+      "question": "2026 Women's US Open Winner",
+      "outcomes": [
+        "Aryna Sabalenka",
+        "Elena Rybakina",
+        "Iga Świątek",
+        "Coco Gauff",
+        "Linda Nosková",
+        "Tereza Valentová",
+        "Mirra Andreeva",
+        "Alexandra Eala",
+        "Amanda Anisimova",
+        "Daria Kasatkina",
+        "Diana Shnaider",
+        "Maya Joint",
+        "Elina Svitolina",
+        "Jessica Pegula",
+        "Qinwen Zheng",
+        "Karolína Muchová",
+        "Madison Keys",
+        "Elise Mertens",
+        "Katie Boulter",
+        "Other / Inconclusive / Canceled"
+      ],
+      "resolves_at": "2026-09-14T21:00:00.000Z",
+      "status": "open"
+    },
+    {
+      "id": "0x43a2b0dfedcfb39b51842dae1252a38bb52be8df",
+      "category": "sports",
+      "question": "2026 Men's US Open Winner",
+      "outcomes": [
+        "Jannik Sinner",
+        "Carlos Alcaraz",
+        "Jack Draper",
+        "Novak Djokovic",
+        "Hubert Hurkacz",
+        "Daniil Medvedev",
+        "Alexander Zverev",
+        "Jakub Menšík",
+        "Ben Shelton",
+        "Taylor Fritz",
+        "João Fonseca",
+        "Alexander Bublik",
+        "Félix Auger-Aliassime",
+        "Jiří Lehečka",
+        "Lorenzo Musetti",
+        "Arthur Fils",
+        "Matteo Berrettini",
+        "Grigor Dimitrov",
+        "Andrey Rublev",
+        "Other / Inconclusive / Canceled"
+      ],
+      "resolves_at": "2026-09-14T21:00:00.000Z",
+      "status": "open"
+    },
+    {
+      "id": "0x64e66bf4d74f3fc1b545dc607d2ad12fb4b51aa6",
+      "category": "sports",
+      "question": "2026 Women's French Open Winner",
+      "outcomes": [
+        "Iga Świątek",
+        "Aryna Sabalenka",
+        "Elena Rybakina",
+        "Coco Gauff",
+        "Mirra Andreeva",
+        "Amanda Anisimova",
+        "Victoria Mboko",
+        "Karolína Muchová",
+        "Jessica Pegula",
+        "Elina Svitolina",
+        "Qinwen Zheng",
+        "Jasmine Paolini",
+        "Belinda Bencic",
+        "Madison Keys",
+        "Naomi Osaka",
+        "Alexandra Eala",
+        "Linda Nosková",
+        "Clara Tauson",
+        "Jelena Ostapenko",
+        "Other / Inconclusive / Canceled"
+      ],
+      "resolves_at": "2026-06-08T21:00:00.000Z",
+      "status": "open"
+    },
+    {
+      "id": "0x828c32232d73b6487ab91105d2dcc9cf05762373",
+      "category": "culture",
+      "question": "Will Grand Theft Auto Trailer 3 come out before or after May 27th?",
+      "outcomes": [
+        "May 26th or before",
+        "May 27th or after"
+      ],
+      "resolves_at": "2026-05-26T16:00:00.000Z",
+      "status": "open"
+    },
+    {
+      "id": "0x3764741f40cdaddc2d6b51e19364954e619d5a82",
+      "category": "culture",
+      "question": "Will MrBeast get married by December 31?",
+      "outcomes": [
+        "Yes",
+        "No"
+      ],
+      "resolves_at": "2026-12-31T22:59:00.000Z",
+      "status": "open"
+    },
+    {
+      "id": "0x52a75af1d153d4dce761d72495a7e0daaf21a170",
+      "category": "crypto",
+      "question": "Total Crypto Market Cap By The End of 2026",
+      "outcomes": [
+        "2-2.5 Trillion",
+        "2.5-3 Trillion",
+        "3-3.5 Trillion",
+        "3.5-4 Trillion",
+        "4-4.5 Trillion ",
+        "1.5-2 Trillion",
+        "Below 1.5 Trillion ",
+        "Above 4.5 Trillion"
+      ],
+      "resolves_at": "2026-12-31T22:59:00.000Z",
+      "status": "open"
     },
     {
       "id": "0x49e23154d8ae372679342973afb0722e23bf2ffc",
       "category": "culture",
       "question": "Will the PS6 get announced in 2026?",
-      "outcomes": ["Yes", "No"],
-      "resolves_at": "2027-01-01T05:00:00Z",
-      "demo_pitch": "Hardware-cycle / Sony-signaling reasoning. Tech-adjacent debate that resonates with Web3 / agentic-product audiences."
+      "outcomes": [
+        "Yes",
+        "No"
+      ],
+      "resolves_at": "2027-01-01T05:00:00.000Z",
+      "status": "open"
+    },
+    {
+      "id": "0x8329b3022bf28faa1197d618e46c6a35b29d5205",
+      "category": "culture",
+      "question": "Will Bethesda announce a new Fallout game in 2026?",
+      "outcomes": [
+        "Yes",
+        "No"
+      ],
+      "resolves_at": "2026-12-31T17:00:00.000Z",
+      "status": "open"
     },
     {
       "id": "0xc1425c5405572ba04ed55e42e473dc05beb0784c",
       "category": "culture",
       "question": "Will Grand Theft Auto 6 get delayed until 2027?",
-      "outcomes": ["Yes", "No"],
-      "resolves_at": "2026-12-31T17:00:00Z",
-      "demo_pitch": "Notoriously contentious gaming-industry topic. Lots of surface area for both sides — Rockstar's history of delays vs current marketing/build signals."
+      "outcomes": [
+        "Yes",
+        "No"
+      ],
+      "resolves_at": "2026-12-31T17:00:00.000Z",
+      "status": "open"
+    },
+    {
+      "id": "0x4a1ed82599bd31dbd3439b674a285aace0cadc56",
+      "category": "culture",
+      "question": "Will there be more than 40 superheroes in Avengers: Doomsday?",
+      "outcomes": [
+        "Yes",
+        "No"
+      ],
+      "resolves_at": "2026-12-18T17:00:00.000Z",
+      "status": "open"
+    },
+    {
+      "id": "0x5e46cb45d41e3396c3d1e617d0ccd0d135420e2f",
+      "category": "culture",
+      "question": "Will Paramount+ announce a new live-action Star Trek TV series in 2026?",
+      "outcomes": [
+        "Yes",
+        "No"
+      ],
+      "resolves_at": "2026-12-31T17:00:00.000Z",
+      "status": "open"
+    },
+    {
+      "id": "0xa33f25efc7e88f6fe1808c3eb6f0c00e9eb88818",
+      "category": "culture",
+      "question": "Luffy and Garland will start fighting in an official One Piece Episode released by May 31st 2026 12:00 PM EASTERN TIME.",
+      "outcomes": [
+        "Yes",
+        "No"
+      ],
+      "resolves_at": "2026-05-31T10:00:00.000Z",
+      "status": "open"
+    },
+    {
+      "id": "0x7e13d808a2fbd695f09e25dc5b4fd021b85004e6",
+      "category": "culture",
+      "question": "Will there be a Jedi making their theatrical debut in 2026?",
+      "outcomes": [
+        "Yes",
+        "No"
+      ],
+      "resolves_at": "2026-12-31T17:00:00.000Z",
+      "status": "open"
+    },
+    {
+      "id": "0xab8953fa33537b560331e3647e85feb2063e4e03",
+      "category": "culture",
+      "question": "Will Doomsday, Dune 3 or Spider-Man 4 make more box office revenue by end of 2026?",
+      "outcomes": [
+        "Avengers: Doomsday",
+        "Dune 3",
+        "Spider-Man 4"
+      ],
+      "resolves_at": "2026-12-31T17:00:00.000Z",
+      "status": "open"
+    },
+    {
+      "id": "0x7892139ac666b23463b20eb1f10a4fdf60f0da82",
+      "category": "culture",
+      "question": "Will Paramount announce a new live-action Star Trek movie in 2026?",
+      "outcomes": [
+        "Yes",
+        "No"
+      ],
+      "resolves_at": "2026-12-31T17:00:00.000Z",
+      "status": "open"
+    },
+    {
+      "id": "0xbf01fbd1ab850df4b7d4d991508e3e9638c47c97",
+      "category": "culture",
+      "question": "Jimmy Kimmel fired or resigns by May 31?",
+      "outcomes": [
+        "Yes",
+        "No"
+      ],
+      "resolves_at": "2026-06-01T04:00:00.000Z",
+      "status": "open"
+    },
+    {
+      "id": "0xfdc4e2efb180df7a32e0f4f3c4c6009d161ac511",
+      "category": "culture",
+      "question": "What hat style will be seen the most at the 2026 Kentucky Derby?",
+      "outcomes": [
+        "Wide brim hat",
+        "Fascinator / Structural hat",
+        "Pillbox hat",
+        "Other hat "
+      ],
+      "resolves_at": "2026-05-03T05:00:00.000Z",
+      "status": "open"
+    },
+    {
+      "id": "0xfcb51144afac50a73dc42b14eb3c0e123a0ba8c3",
+      "category": "sports",
+      "question": "What will the gate number be of the 2026 Kentucky Derby winner?",
+      "outcomes": [
+        "1-6",
+        "7-12",
+        "13+"
+      ],
+      "resolves_at": "2026-05-02T22:55:00.000Z",
+      "status": "open"
+    },
+    {
+      "id": "0xbe27783b0b9c60897ef4be07efa9b4135b92b9f6",
+      "category": "sports",
+      "question": "What will the 2026 Kentucky Derby winning time be?",
+      "outcomes": [
+        "Over 122.5 seconds",
+        "Under 122.5 seconds"
+      ],
+      "resolves_at": "2026-05-02T22:55:00.000Z",
+      "status": "open"
+    },
+    {
+      "id": "0x4d54a5fcfc0275898931ae1fece2df52fb60e98b",
+      "category": "sports",
+      "question": "What will the gate number be of the winning horse in the 2026 Kentucky Derby?",
+      "outcomes": [
+        "Odd",
+        "Even"
+      ],
+      "resolves_at": "2026-05-02T22:55:00.000Z",
+      "status": "open"
+    },
+    {
+      "id": "0x3d5298c1e2057f23ca353cc0bc76d4501bdfd33e",
+      "category": "miscellaneous",
+      "question": "How many perfect scores will there be at IMO 2026?",
+      "outcomes": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "6+"
+      ],
+      "resolves_at": "2026-07-20T23:00:00.000Z",
+      "status": "open"
     }
   ]
 }

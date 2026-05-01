@@ -62,3 +62,20 @@ export interface DemoMarket {
   resolves_at?: string;
   demo_pitch?: string;
 }
+
+/**
+ * Slim shape returned by /api/markets (live Delphi sweep). Mirrors
+ * MarketSummary from @delphi-duel/sdk. The picker dropdown uses this
+ * directly; only on selection do we hit /api/market/<id> for the
+ * full canonical Market with implied_probabilities.
+ */
+export interface MarketSummary {
+  id: string;
+  question: string;
+  category: string;
+  outcomes: string[];
+  close_date: string;
+  status: string;
+  implied_probabilities?: number[];
+  volume?: number;
+}
