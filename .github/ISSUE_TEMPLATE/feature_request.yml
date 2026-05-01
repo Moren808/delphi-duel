@@ -1,0 +1,103 @@
+name: ✨ Feature request
+description: An idea for something new — a feature, an integration, a workflow improvement.
+title: "[feat] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the idea. We're more likely to land things if you
+        spell out the *why* (what problem this solves) before the
+        *what* (the implementation). Big features may want a design
+        sketch in `CONTRIBUTING.md` first — don't be shy about that.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: |
+        Describe the user-facing pain or capability gap. "I wish I
+        could ___ but currently ___." If this is for the live demo or
+        a specific integration partner, name them.
+      placeholder: |
+        Right now I can't compare three outcomes against each other —
+        only two head-to-head. For markets like the F1 Drivers'
+        Champion, the most interesting debate is between the top three
+        candidates simultaneously, not just one pair.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: |
+        How would this work? Be concrete: which file, which function,
+        which UI surface. If there's a design choice (option A vs B),
+        flag both with the trade-off you see.
+      placeholder: |
+        Add a third side to the duel — e.g. "challenger" — picked from
+        the same multi-outcome dropdown. Three-way debate flow:
+        bull → bear → challenger → bull → ...  Round count would
+        scale: 6 turns total = 2 each.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Which surface(s) would this touch?
+      multiple: true
+      options:
+        - "Agent runtime (bull / bear / judge process logic)"
+        - "Agent system prompts"
+        - "Protocol / shared types"
+        - "AXL transport / mesh setup"
+        - "SQLite schema / storage"
+        - "run-duel orchestrator"
+        - "Web UI / dashboard"
+        - "API routes (/api/...)"
+        - "Documentation"
+        - "CI / deployment / Vercel"
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: How urgent is this for you?
+      options:
+        - "Nice to have, no rush"
+        - "Would unblock a specific use case I have"
+        - "Needed before a specific deadline (specify in 'Anything else')"
+        - "Critical — current behavior is wrong"
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: |
+        What other solutions exist? Why is the proposal above the right
+        one? "I could just X" is fine — it shows you've thought about
+        it.
+      placeholder: |
+        Could also surface a "tournament" UI that runs 3 separate
+        head-to-head duels and aggregates. Rejected because it's 3×
+        the wall-clock and the trader can't see the agents engage with
+        each other across pairs.
+
+  - type: textarea
+    id: prior_art
+    attributes:
+      label: Prior art / references
+      description: |
+        Other projects doing something similar, papers, blog posts.
+        Optional but helpful.
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else
+      description: |
+        Mockups, deadline context, willingness to send a PR yourself
+        (we love that), etc.

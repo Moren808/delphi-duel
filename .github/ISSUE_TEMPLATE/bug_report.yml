@@ -1,0 +1,122 @@
+name: 🐞 Bug report
+description: Something is broken — a duel that should run doesn't, the UI is misrendering, the mesh won't peer.
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for filing a bug. The more specific you can be about
+        environment + reproduction + actual logs, the faster this
+        gets fixed. **Please don't paste any API keys** — redact
+        anything from `.env.local` before pasting commands.
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: One-sentence summary
+      description: What's broken, in one line.
+      placeholder: "Bear agent crashes on round 1 with multi-outcome markets that have >15 outcomes."
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Exact commands or click sequence. Reproducible bug = reproducible fix.
+      placeholder: |
+        1. `pnpm axl:start && pnpm axl:probe`
+        2. `pnpm dev:judge &`
+        3. `DELPHI_BULL_OUTCOME="Argentina" DELPHI_BEAR_OUTCOME="England" pnpm run-duel 0xe4649da9...`
+        4. Bear logs throw `expected peer.role="bull", got "bear"` at round 2
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+      description: What should have happened instead.
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: What actually happened
+      description: |
+        Paste the relevant log output. For agent crashes, include
+        the last 30 lines from the failing process. For UI bugs,
+        include browser console errors AND the network panel HTTP
+        status of any failed `/api/...` request.
+      render: shell
+    validations:
+      required: true
+
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Which surface
+      description: Where the bug manifested
+      options:
+        - "Bull or bear agent process"
+        - "Judge agent process"
+        - "AXL mesh / connectivity"
+        - "Web UI / dashboard"
+        - "API route (/api/...)"
+        - "SQLite / data.db"
+        - "run-duel orchestrator"
+        - "Vercel deployment"
+        - "Other / unsure"
+    validations:
+      required: true
+
+  - type: input
+    id: market
+    attributes:
+      label: Market ID (if applicable)
+      description: The Delphi market ID the bug surfaced against.
+      placeholder: "0xc81b47c859a8b8290c3931d46562b547d283d3f4"
+
+  - type: dropdown
+    id: market_type
+    attributes:
+      label: Binary or multi-outcome?
+      options:
+        - "binary (2 outcomes)"
+        - "multi-outcome head-to-head (3+ outcomes, user-picked sides)"
+        - "n/a — bug isn't market-specific"
+
+  - type: input
+    id: duel_id
+    attributes:
+      label: Duel ID (if a duel was running)
+      description: Find with `sqlite3 data.db "SELECT duel_id FROM turns ORDER BY produced_at DESC LIMIT 1"`
+      placeholder: "0f818e08-ad83-46bf-b292-3bb23ab42a60"
+
+  - type: textarea
+    id: env
+    attributes:
+      label: Environment
+      description: |
+        Run `node --version`, `pnpm --version`, and `go version` and paste here.
+        Add OS (macOS / Linux / Windows + WSL?) and whether you're hitting
+        Delphi mainnet or testnet.
+      render: shell
+      placeholder: |
+        node v20.10.0
+        pnpm 9.0.0
+        go version go1.25.5 darwin/arm64
+        OS: macOS 15.2 Apple Silicon
+        DELPHI_NETWORK: mainnet
+    validations:
+      required: true
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else
+      description: |
+        AXL node logs (`tail -50 axl/logs/node-*.log`), screenshots,
+        recent commit SHA you're on (`git rev-parse HEAD`), etc.

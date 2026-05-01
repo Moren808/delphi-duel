@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📚 Documentation
+    url: https://github.com/Moren808/delphi-duel#readme
+    about: Architecture overview, run-it-locally, AXL integration details.
+  - name: 🎬 Demo guide
+    url: https://github.com/Moren808/delphi-duel/blob/main/DEMO.md
+    about: Live-pitch script + setup instructions.
+  - name: 🤝 Contributing
+    url: https://github.com/Moren808/delphi-duel/blob/main/CONTRIBUTING.md
+    about: How to add a new agent, run tests, contribute to the judge prompt.
