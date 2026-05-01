@@ -296,5 +296,168 @@ export async function listAllMarkets(opts: {
   return out;
 }
 
+/* ────────────────────  Phase 12: autonomous betting  ──────────────────── */
+
+/**
+ * Lazy write-client. Distinct from the read-only `getClient()` because
+ * write operations need a REAL signer (the read client uses a sentinel
+ * 0x00 key that throws if you call signing methods). Only instantiated
+ * when placeBet is actually called.
+ */
+let _writeClient: DelphiClient | null = null;
+function getWriteClient(): DelphiClient {
+  if (_writeClient) return _writeClient;
+
+  const apiKey = process.env.DELPHI_API_ACCESS_KEY;
+  const privateKey = process.env.MAINNET_WALLET_PRIVATE_KEY;
+  const network = (process.env.DELPHI_NETWORK as Network | undefined) ?? "mainnet";
+
+  if (!apiKey) {
+    throw new Error("DELPHI_API_ACCESS_KEY is not set");
+  }
+  if (!privateKey) {
+    throw new Error(
+      "MAINNET_WALLET_PRIVATE_KEY is not set — required when AUTO_BET=true",
+    );
+  }
+  if (!privateKey.startsWith("0x") || privateKey.length !== 66) {
+    throw new Error(
+      "MAINNET_WALLET_PRIVATE_KEY must be a 0x-prefixed 64-char hex string",
+    );
+  }
+
+  _writeClient = new DelphiClient({
+    network,
+    apiKey,
+    signerType: "private_key",
+    privateKey: privateKey as `0x${string}`,
+  });
+  return _writeClient;
+}
+
+export interface PlaceBetResult {
+  /** On-chain transaction hash. */
+  tx_hash: `0x${string}`;
+  /** Outcome shares purchased (18 decimals as bigint). */
+  shares_out: bigint;
+  /** Actual USDC spent (6 decimals as bigint). */
+  tokens_in: bigint;
+  /** USDC spent in human units. */
+  spent_usdc: number;
+  /** Wallet that placed the bet. */
+  buyer_address: `0x${string}`;
+}
+
+/**
+ * Place an on-chain bet on a Delphi market.
+ *
+ * Flow:
+ *   1. Quote — estimate share count from `amountUsdc / impliedProbability`,
+ *      then call quoteBuy() to get the exact tokensIn for that share count.
+ *   2. Re-scale if the quote came back higher than the budget (rare, but
+ *      possible if the implied probability slid between the read and the
+ *      quote).
+ *   3. ensureTokenApproval — checks USDC allowance for the gateway and
+ *      bumps it if needed (idempotent — no tx if approval already covers).
+ *   4. buyShares — submits the on-chain transaction with 5% slippage
+ *      tolerance on tokensIn.
+ *
+ * Throws on:
+ *   - missing wallet env / malformed key
+ *   - quote/approval/buy chain failure (e.g. BuyTooSmall — the market
+ *     has a minimum bet size below which it won't accept)
+ *   - amountUsdc <= 0
+ *
+ * Caller is responsible for AUTO_BET gating, daily caps, and logging
+ * the result to SQLite.
+ *
+ * @param marketAddress  Delphi market proxy contract (the same value as
+ *                       Market.id). Must be `0x`-prefixed.
+ * @param outcomeIdx     0-indexed outcome to buy.
+ * @param amountUsdc     Target USDC to spend, in human units (not wei).
+ *                       e.g. 2.50 = $2.50.
+ */
+export async function placeBet(
+  marketAddress: string,
+  outcomeIdx: number,
+  amountUsdc: number,
+): Promise<PlaceBetResult> {
+  if (!marketAddress.startsWith("0x")) {
+    throw new Error(`marketAddress must be 0x-prefixed (got ${marketAddress})`);
+  }
+  if (!Number.isFinite(amountUsdc) || amountUsdc <= 0) {
+    throw new Error(`amountUsdc must be > 0 (got ${amountUsdc})`);
+  }
+
+  const client = getWriteClient();
+  const market = `0x${marketAddress.slice(2)}` as `0x${string}`;
+
+  // USDC has 6 decimals on Gensyn networks per SDK README.
+  const USDC_DECIMALS = 6n;
+  const SHARE_DECIMALS = 18n;
+  const targetTokensIn = BigInt(Math.round(amountUsdc * 1_000_000));
+
+  // Read implied probability for the chosen outcome to estimate shares.
+  // Probability is bounded [0, 1]. Worst case (prob ~0) we cap at 0.01 to
+  // avoid unbounded share counts — the caller should never trigger this
+  // because the judge's "neutral" filter blocks bets on near-zero outcomes.
+  const summary = await fetchMarket(marketAddress);
+  const probRaw = summary.implied_probabilities[outcomeIdx];
+  const prob = !probRaw || probRaw < 0.01 ? 0.01 : probRaw;
+
+  // Estimate shares: at parimutuel pricing, share_price ≈ probability.
+  // shares = (amountUsdc / prob), scaled to 18 decimals.
+  const sharesEstimate = BigInt(
+    Math.floor((amountUsdc / prob) * 10 ** Number(SHARE_DECIMALS)),
+  );
+
+  // Quote the estimate to get exact tokensIn.
+  const { tokensIn: quoteTokens } = await client.quoteBuy({
+    marketAddress: market,
+    outcomeIdx,
+    sharesOut: sharesEstimate,
+  });
+
+  // If the real quote is over budget (slippage from our prob estimate),
+  // scale shares down proportionally and re-quote once.
+  let actualShares = sharesEstimate;
+  let actualTokens = quoteTokens;
+  if (quoteTokens > targetTokensIn) {
+    actualShares = (sharesEstimate * targetTokensIn) / quoteTokens;
+    const refined = await client.quoteBuy({
+      marketAddress: market,
+      outcomeIdx,
+      sharesOut: actualShares,
+    });
+    actualTokens = refined.tokensIn;
+  }
+
+  // Ensure USDC approval covers the buy (idempotent — no-op if already set).
+  await client.ensureTokenApproval({
+    marketAddress: market,
+    minimumAmount: actualTokens,
+  });
+
+  // Submit with 5% slippage cap on tokensIn.
+  const maxTokensIn = (actualTokens * 105n) / 100n;
+  const { transactionHash } = await client.buyShares({
+    marketAddress: market,
+    outcomeIdx,
+    sharesOut: actualShares,
+    maxTokensIn,
+  });
+
+  const signer = await client.getSigner();
+  const _ = USDC_DECIMALS; // silence unused-var lint
+
+  return {
+    tx_hash: transactionHash,
+    shares_out: actualShares,
+    tokens_in: actualTokens,
+    spent_usdc: Number(actualTokens) / 1_000_000,
+    buyer_address: signer.address,
+  };
+}
+
 export type { Market } from "@delphi-duel/shared-types";
 export type { Market as SdkMarket } from "@gensyn-ai/gensyn-delphi-sdk";

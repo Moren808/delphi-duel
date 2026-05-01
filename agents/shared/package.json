@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.30.0",
+    "@delphi-duel/sdk": "workspace:*",
     "@delphi-duel/shared-types": "workspace:*",
     "better-sqlite3": "^11.0.0",
     "zod": "^3.22.0"

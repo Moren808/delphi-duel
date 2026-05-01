@@ -18,6 +18,7 @@ import { readFileSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import Anthropic from "@anthropic-ai/sdk";
+import { placeBet } from "@delphi-duel/sdk";
 import {
   send,
   recvWait,
@@ -32,7 +33,7 @@ import {
   type VerdictRecord,
   type DuelVerdict,
 } from "./protocol.js";
-import { openDb, DEFAULT_DB_PATH, type DuelDb } from "./storage.js";
+import { openDb, DEFAULT_DB_PATH, type DuelDb, type BetRecord } from "./storage.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -159,6 +160,185 @@ async function judgeTranscript(t: DuelTranscript): Promise<VerdictPayload> {
   return v;
 }
 
+/* ---------- Phase 12: autonomous betting ---------- */
+
+const CONFIDENCE_THRESHOLD = 0.65;
+
+/**
+ * Decide whether (and how) to act on a verdict. Returns:
+ *   - {skip: true, reason} — judge should not place a bet (low confidence,
+ *     neutral recommendation, can't resolve outcome name to index, etc.)
+ *   - {skip: false, outcome_index, side} — bet on this outcome.
+ */
+function decideBet(
+  verdict: VerdictRecord,
+  envelope: DuelTranscript,
+):
+  | { skip: true; reason: string }
+  | { skip: false; outcome_index: number; side: "YES" | "NO"; outcome_name: string } {
+  if (verdict.confidence < CONFIDENCE_THRESHOLD) {
+    return {
+      skip: true,
+      reason: `confidence ${verdict.confidence.toFixed(2)} < ${CONFIDENCE_THRESHOLD} threshold`,
+    };
+  }
+  const pos = verdict.recommended_position;
+  const isYes = /\bYES\b/.test(pos);
+  const isNo = /\bNO\b/.test(pos);
+  if (!isYes && !isNo) {
+    // "neutral"
+    return { skip: true, reason: `position "${pos}" is neither YES nor NO` };
+  }
+  const side: "YES" | "NO" = isYes ? "YES" : "NO";
+
+  // Resolve to an outcome index in the canonical outcomes array.
+  // Multi-outcome (head-to-head) markets stamp bull_outcome / bear_outcome
+  // on every turn; binary markets fall back to "Yes" / "No" lookups.
+  const turn = envelope.turns[0];
+  const outcomes = turn ? envelope.turns[0]
+    ? // we need the canonical outcomes array; the transcript carries
+      // bull_outcome and bear_outcome but not the full outcomes list,
+      // so we fall back to inferring from the agent that was assigned.
+      // This branch handles outcome mode.
+      undefined
+    : undefined : undefined;
+
+  const bullOutcome = turn?.bull_outcome;
+  const bearOutcome = turn?.bear_outcome;
+  const outcomeMode = !!(bullOutcome && bearOutcome);
+
+  let outcome_name: string;
+  let outcome_index: number;
+
+  if (outcomeMode) {
+    // YES = bet on bull's outcome; NO = bet on bear's outcome.
+    outcome_name = side === "YES" ? bullOutcome! : bearOutcome!;
+  } else {
+    // Binary — bet on the literal "Yes" or "No" outcome label.
+    outcome_name = side === "YES" ? "Yes" : "No";
+  }
+
+  // Index resolution requires the outcomes list — fetched from the API
+  // route or inferred. For binary, "Yes" = index 0, "No" = index 1 by
+  // Delphi convention (verified across our demo set).
+  // For multi-outcome, the orchestrator passes the names but not the
+  // index; we'll let the caller resolve via fetchMarket(market_id).
+  // Returning the name + a placeholder index = -1 to signal "look up".
+  outcome_index = side === "YES" ? 0 : 1; // binary default
+  if (outcomeMode) outcome_index = -1; // caller resolves
+
+  return { skip: false, outcome_index, side, outcome_name };
+}
+
+async function attemptAutoBet(
+  verdict: VerdictRecord,
+  envelope: DuelTranscript,
+  db: DuelDb,
+): Promise<void> {
+  const autoBetEnabled = process.env.AUTO_BET === "true";
+  const betSize = Number(process.env.BET_SIZE_USDC ?? "2.50");
+
+  const decision = decideBet(verdict, envelope);
+  const now = new Date().toISOString();
+  const baseRecord = {
+    duel_id: verdict.duel_id,
+    market_id: verdict.market_id,
+    amount_usdc: betSize,
+    timestamp: now,
+  };
+
+  if (decision.skip) {
+    const rec: BetRecord = {
+      ...baseRecord,
+      outcome_index: -1,
+      tx_hash: null,
+      status: "skipped",
+      error: decision.reason,
+    };
+    db.insertBet(rec);
+    console.error(`[judge] auto-bet skipped: ${decision.reason}`);
+    return;
+  }
+
+  // We have a YES/NO direction + outcome name. Resolve the index for
+  // multi-outcome markets by reading the live outcomes list.
+  let outcomeIdx = decision.outcome_index;
+  if (outcomeIdx < 0) {
+    try {
+      const { fetchMarket } = await import("@delphi-duel/sdk");
+      const m = await fetchMarket(verdict.market_id);
+      const i = m.outcomes.indexOf(decision.outcome_name);
+      if (i < 0) {
+        const reason = `outcome "${decision.outcome_name}" not found in market.outcomes (${m.outcomes.join(" / ")})`;
+        db.insertBet({
+          ...baseRecord,
+          outcome_index: -1,
+          tx_hash: null,
+          status: "skipped",
+          error: reason,
+        });
+        console.error(`[judge] auto-bet skipped: ${reason}`);
+        return;
+      }
+      outcomeIdx = i;
+    } catch (err) {
+      const reason = `outcome lookup failed: ${(err as Error).message}`;
+      db.insertBet({
+        ...baseRecord,
+        outcome_index: -1,
+        tx_hash: null,
+        status: "skipped",
+        error: reason,
+      });
+      console.error(`[judge] auto-bet skipped: ${reason}`);
+      return;
+    }
+  }
+
+  if (!autoBetEnabled) {
+    db.insertBet({
+      ...baseRecord,
+      outcome_index: outcomeIdx,
+      tx_hash: null,
+      status: "skipped",
+      error: `AUTO_BET=false (would have bet ${decision.side} on outcome ${outcomeIdx} "${decision.outcome_name}" for $${betSize.toFixed(2)})`,
+    });
+    console.error(
+      `[judge] auto-bet DRY RUN: would bet $${betSize.toFixed(2)} on outcome ${outcomeIdx} "${decision.outcome_name}" (${decision.side}). Set AUTO_BET=true to enable.`,
+    );
+    return;
+  }
+
+  // Live path — actually place the bet.
+  console.error(
+    `[judge] auto-bet LIVE: placing $${betSize.toFixed(2)} on outcome ${outcomeIdx} "${decision.outcome_name}" (${decision.side})…`,
+  );
+  try {
+    const result = await placeBet(verdict.market_id, outcomeIdx, betSize);
+    db.insertBet({
+      ...baseRecord,
+      outcome_index: outcomeIdx,
+      tx_hash: result.tx_hash,
+      status: "placed",
+      error: null,
+    });
+    console.error(
+      `[judge] auto-bet PLACED: tx=${result.tx_hash}  shares=${result.shares_out.toString()}  spent=$${result.spent_usdc.toFixed(4)}  buyer=${result.buyer_address}`,
+    );
+  } catch (err) {
+    const msg = (err as Error).message ?? String(err);
+    db.insertBet({
+      ...baseRecord,
+      outcome_index: outcomeIdx,
+      tx_hash: null,
+      status: "failed",
+      error: msg,
+    });
+    console.error(`[judge] auto-bet FAILED (non-fatal): ${msg}`);
+    // Crucially we do NOT rethrow — judge continues processing future duels.
+  }
+}
+
 /* ---------- main loop ---------- */
 
 export interface RunJudgeOptions {
@@ -247,6 +427,16 @@ export async function runJudge(opts: RunJudgeOptions = {}): Promise<void> {
     } catch (err) {
       console.error(
         `[judge] could not relay verdict back to bull (${(err as Error).message}) — non-fatal, persisted to db`,
+      );
+    }
+
+    // Phase 12 — autonomous betting. Wrapped in its own try/catch so any
+    // logic error here cannot crash the long-running judge daemon.
+    try {
+      await attemptAutoBet(record, envelope, db);
+    } catch (err) {
+      console.error(
+        `[judge] auto-bet logic threw (non-fatal): ${(err as Error).message}`,
       );
     }
   }

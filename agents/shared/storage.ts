@@ -53,6 +53,20 @@ CREATE TABLE IF NOT EXISTS verdicts (
 );
 
 CREATE INDEX IF NOT EXISTS idx_verdicts_market ON verdicts(market_id, produced_at);
+
+CREATE TABLE IF NOT EXISTS bets (
+  duel_id        TEXT    PRIMARY KEY,
+  market_id      TEXT    NOT NULL,
+  outcome_index  INTEGER NOT NULL,
+  amount_usdc    REAL    NOT NULL,
+  tx_hash        TEXT,
+  status         TEXT    NOT NULL CHECK (status IN ('placed','failed','skipped')),
+  error          TEXT,
+  timestamp      TEXT    NOT NULL,
+  inserted_at    TEXT    NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_bets_market ON bets(market_id, timestamp);
 `;
 
 const INSERT_SQL = `
@@ -77,11 +91,36 @@ INSERT OR REPLACE INTO verdicts (
 )
 `;
 
+const INSERT_BET_SQL = `
+INSERT OR REPLACE INTO bets (
+  duel_id, market_id, outcome_index, amount_usdc,
+  tx_hash, status, error, timestamp
+) VALUES (
+  @duel_id, @market_id, @outcome_index, @amount_usdc,
+  @tx_hash, @status, @error, @timestamp
+)
+`;
+
+export type BetStatus = "placed" | "failed" | "skipped";
+
+export interface BetRecord {
+  duel_id: string;
+  market_id: string;
+  outcome_index: number;
+  amount_usdc: number;
+  tx_hash: string | null;
+  status: BetStatus;
+  error: string | null;
+  timestamp: string;
+}
+
 export interface DuelDb {
   insertTurn(t: TurnRecord): void;
   listTurns(duelId: string): TurnRecord[];
   insertVerdict(v: VerdictRecord): void;
   getVerdict(duelId: string): VerdictRecord | null;
+  insertBet(b: BetRecord): void;
+  getBet(duelId: string): BetRecord | null;
   close(): void;
   path: string;
 }
@@ -112,6 +151,8 @@ export function openDb(dbPath: string = DEFAULT_DB_PATH): DuelDb {
   const getVerdictStmt = db.prepare(
     "SELECT * FROM verdicts WHERE duel_id = ?",
   );
+  const insertBetStmt = db.prepare(INSERT_BET_SQL);
+  const getBetStmt = db.prepare("SELECT * FROM bets WHERE duel_id = ?");
 
   return {
     path: dbPath,
@@ -154,9 +195,40 @@ export function openDb(dbPath: string = DEFAULT_DB_PATH): DuelDb {
         | undefined;
       return row ? rowToVerdict(row) : null;
     },
+    insertBet(b: BetRecord): void {
+      insertBetStmt.run({
+        duel_id: b.duel_id,
+        market_id: b.market_id,
+        outcome_index: b.outcome_index,
+        amount_usdc: b.amount_usdc,
+        tx_hash: b.tx_hash,
+        status: b.status,
+        error: b.error,
+        timestamp: b.timestamp,
+      });
+    },
+    getBet(duelId: string): BetRecord | null {
+      const row = getBetStmt.get(duelId) as
+        | Record<string, unknown>
+        | undefined;
+      return row ? rowToBet(row) : null;
+    },
     close(): void {
       db.close();
     },
+  };
+}
+
+function rowToBet(r: Record<string, unknown>): BetRecord {
+  return {
+    duel_id: r.duel_id as string,
+    market_id: r.market_id as string,
+    outcome_index: r.outcome_index as number,
+    amount_usdc: r.amount_usdc as number,
+    tx_hash: (r.tx_hash as string | null) ?? null,
+    status: r.status as BetStatus,
+    error: (r.error as string | null) ?? null,
+    timestamp: r.timestamp as string,
   };
 }
 
