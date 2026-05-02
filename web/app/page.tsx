@@ -18,7 +18,7 @@ import {
 } from "@/lib/api";
 import { DEMO_MARKETS } from "@/lib/markets";
 import { cn } from "@/lib/cn";
-import type { TurnRecord, VerdictRecord } from "@/lib/types";
+import type { BetRecord, TurnRecord, VerdictRecord } from "@/lib/types";
 import exampleDuelFixture from "../fixtures/example-duel.json";
 
 const POLL_MS = 1_000;
@@ -37,6 +37,13 @@ interface ExampleDuel {
   turns: TurnRecord[];
   /** Optional — pre-baked judge verdict for the example replay. */
   verdict?: VerdictRecord;
+  /**
+   * Optional — pre-baked autonomous-bet row. When present the dashboard
+   * renders the BetsCard + the inline summary on the verdict card so the
+   * full closed-loop demo (debate → verdict → on-chain bet) is visible
+   * on the Vercel deploy without a live judge.
+   */
+  bet?: BetRecord & { network?: string };
 }
 
 function lookupMarketQuestion(marketId: string): string {
@@ -67,6 +74,9 @@ export default function Home() {
   // (fixture has a baked-in verdict so VerdictCard can render without
   // polling). Cleared on real duels (live polling via /api/verdict).
   const [inlineVerdict, setInlineVerdict] = useState<VerdictRecord | null>(null);
+  // Inline bet override — same idea as inlineVerdict, for the autonomous
+  // betting panel. Set only when replaying the example fixture.
+  const [inlineBet, setInlineBet] = useState<(BetRecord & { network?: string }) | null>(null);
   // The market currently selected in the picker dropdown — drives the
   // MarketSummaryCard before any duel starts. Distinct from `marketId`,
   // which only flips after Start Duel is clicked.
@@ -142,6 +152,7 @@ export default function Home() {
       setViewingExample(false);
       setTitleOverride(null);
       setInlineVerdict(null);
+      setInlineBet(null);
       try {
         const r = await startDuel(selectedMarketId, extras);
         setDuelId(r.duel_id);
@@ -167,6 +178,7 @@ export default function Home() {
     setTurns(ex.turns);
     setTitleOverride(ex.market_question);
     setInlineVerdict(ex.verdict ?? null);
+    setInlineBet(ex.bet ?? null);
   }, []);
 
   const duelComplete = isComplete(turns);
@@ -263,15 +275,21 @@ export default function Home() {
                 duelId={duelId}
                 duelComplete={duelComplete}
                 inlineVerdict={inlineVerdict}
+                inlineBet={inlineBet}
+                inlineNetwork={inlineBet?.network}
                 bullOutcome={turns[0]?.bull_outcome ?? null}
                 bearOutcome={turns[0]?.bear_outcome ?? null}
               />
             )}
 
-            {duelComplete && duelId && !viewingExample && (
+            {/* Render BetsCard for live duels OR for the example fixture
+                when it carries a baked-in bet (Vercel demo). */}
+            {duelComplete && duelId && (!viewingExample || inlineBet) && (
               <BetsCard
                 duelId={duelId}
                 duelComplete={duelComplete}
+                inlineBet={inlineBet}
+                inlineNetwork={inlineBet?.network}
                 bullOutcome={turns[0]?.bull_outcome ?? null}
                 bearOutcome={turns[0]?.bear_outcome ?? null}
               />

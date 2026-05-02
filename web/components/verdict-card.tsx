@@ -5,7 +5,7 @@ import { Crown, Loader2, Wallet } from "lucide-react";
 import { useEffect, useState } from "react";
 import { fetchBet, fetchVerdict, type BetResponse } from "@/lib/api";
 import { cn } from "@/lib/cn";
-import type { VerdictRecord } from "@/lib/types";
+import type { BetRecord, VerdictRecord } from "@/lib/types";
 
 const POLL_MS = 1_500;
 
@@ -35,6 +35,14 @@ interface Props {
    */
   inlineVerdict?: VerdictRecord | null;
   /**
+   * Pre-supplied bet for the same fixture — drives the inline auto-bet
+   * line below the position badge without hitting /api/bet. Used by the
+   * Vercel demo where there's no SQLite / live judge.
+   */
+  inlineBet?: BetRecord | null;
+  /** Network for the inline bet's explorer link. Defaults to "mainnet". */
+  inlineNetwork?: string;
+  /**
    * Multi-outcome head-to-head: outcome names for bull and bear.
    * When both present, "BULL WINS" is replaced with the bull
    * outcome name (e.g. "OKLAHOMA CITY THUNDER WINS"); same for bear.
@@ -55,15 +63,26 @@ export function VerdictCard({
   duelId,
   duelComplete,
   inlineVerdict,
+  inlineBet,
+  inlineNetwork,
   bullOutcome,
   bearOutcome,
 }: Props) {
   const [verdict, setVerdict] = useState<VerdictRecord | null>(inlineVerdict ?? null);
   const [polling, setPolling] = useState<boolean>(!inlineVerdict && duelComplete);
   // Bet summary — polled in parallel with verdict so the verdict card and
-  // the BetsCard tell the same story together. Null until the judge
-  // reaches the betting branch.
-  const [bet, setBet] = useState<BetResponse | null>(null);
+  // the BetsCard tell the same story together. Seeded by the fixture
+  // (inlineBet) when replaying the example duel; otherwise null until the
+  // judge reaches the betting branch.
+  const [bet, setBet] = useState<BetResponse | null>(
+    inlineBet
+      ? {
+          bet: inlineBet,
+          auto_bet_enabled: true,
+          network: inlineNetwork ?? "mainnet",
+        }
+      : null,
+  );
 
   // If a fixture verdict was passed, lock it in and don't poll.
   useEffect(() => {
@@ -112,7 +131,7 @@ export function VerdictCard({
   // Bet polling — same cadence as verdict, runs only on real (non-fixture)
   // duels. Stops once we have a terminal row (placed/failed/skipped).
   useEffect(() => {
-    if (inlineVerdict) return;
+    if (inlineVerdict || inlineBet) return;
     if (!duelComplete) return;
 
     let cancelled = false;
@@ -138,7 +157,7 @@ export function VerdictCard({
       cancelled = true;
       clearInterval(id);
     };
-  }, [duelId, duelComplete, inlineVerdict, bet?.bet?.status]);
+  }, [duelId, duelComplete, inlineVerdict, inlineBet, bet?.bet?.status]);
 
   // Don't render until the duel is complete. Avoids visual noise mid-debate.
   if (!duelComplete) return null;

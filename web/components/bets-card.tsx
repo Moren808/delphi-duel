@@ -23,6 +23,7 @@ import {
 import { useEffect, useState } from "react";
 import { fetchBet, type BetResponse } from "@/lib/api";
 import { cn } from "@/lib/cn";
+import type { BetRecord } from "@/lib/types";
 
 const POLL_MS = 1_500;
 
@@ -33,6 +34,14 @@ interface Props {
   /** Multi-outcome head-to-head: if both set, used to label the outcome name. */
   bullOutcome?: string | null;
   bearOutcome?: string | null;
+  /**
+   * Pre-supplied bet (e.g. when replaying the example fixture). When passed
+   * the card uses this directly and skips polling /api/bet — useful for
+   * deployments without a live judge / SQLite (Vercel demo).
+   */
+  inlineBet?: BetRecord | null;
+  /** Network for the explorer link when inlineBet is set. Defaults to "mainnet". */
+  inlineNetwork?: string;
 }
 
 /** Build the Alchemy block-explorer tx link for the right network. */
@@ -80,10 +89,22 @@ export function BetsCard({
   duelComplete,
   bullOutcome,
   bearOutcome,
+  inlineBet,
+  inlineNetwork,
 }: Props) {
-  const [resp, setResp] = useState<BetResponse | null>(null);
+  const [resp, setResp] = useState<BetResponse | null>(
+    inlineBet
+      ? {
+          bet: inlineBet,
+          auto_bet_enabled: true,
+          network: inlineNetwork ?? "mainnet",
+        }
+      : null,
+  );
 
   useEffect(() => {
+    // Fixture path — render the supplied bet, no polling.
+    if (inlineBet) return;
     if (!duelComplete) return;
 
     let cancelled = false;
@@ -112,7 +133,7 @@ export function BetsCard({
       cancelled = true;
       clearInterval(id);
     };
-  }, [duelId, duelComplete, resp?.bet?.status]);
+  }, [duelId, duelComplete, resp?.bet?.status, inlineBet]);
 
   // Don't render until the duel is complete, the API has answered, or
   // when AUTO_BET is off server-side. Skipped bets are also hidden —
